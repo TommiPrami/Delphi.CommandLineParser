@@ -138,7 +138,7 @@ type
   TCLPOption = (opIgnoreUnknownSwitches);
   TCLPOptions = set of TCLPOption;
 
-  IGpCommandLineParser = interface ['{C9B729D4-3706-46DB-A8A2-1E07E04F497B}']
+  ICommandLineParser = interface ['{C9B729D4-3706-46DB-A8A2-1E07E04F497B}']
     function GetErrorInfo: TCLPErrorInfo;
     function GetOptions: TCLPOptions;
     procedure SetOptions(const AValue: TCLPOptions);
@@ -160,12 +160,12 @@ type
   ///	<summary>
   ///	  Returns global parser instance. Not thread-safe.
   ///	</summary>
-  function CommandLineParser: IGpCommandLineParser;
+  function CommandLineParser: ICommandLineParser;
 
   ///	<summary>
   ///	  Create new command line parser instance. Thread-safe.
   ///	</summary>
-  function CreateCommandLineParser: IGpCommandLineParser;
+  function CreateCommandLineParser: ICommandLineParser;
 
 implementation
 
@@ -253,7 +253,7 @@ const
     FParamDelims : array [0..1] of Char = (':', '=');
 
 type
-  TGpCommandLineParser = class(TInterfacedObject, IGpCommandLineParser)
+  TCommandLineParser = class(TInterfacedObject, ICommandLineParser)
   strict private
     FErrorInfo: TCLPErrorInfo;
     FOptions: TCLPOptions;
@@ -279,7 +279,7 @@ type
     function SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed; const AText: string;
       const APosition: Integer = 0; const ASwitchName: string = ''): Boolean;
     procedure SetOptions(const AValue: TCLPOptions);
-  protected // used in TGpUsageFormatter
+  protected // used in TUsageFormatter
     property Positionals: TArray<TSwitchData> read FPositionals;
     property SwitchList: TObjectList<TSwitchData> read FSwitchList;
   public
@@ -293,23 +293,23 @@ type
     property Options: TCLPOptions read GetOptions write SetOptions;
   end;
 
-  TGpUsageFormatter = class
+  TUsageFormatter = class
   private
     function AddParameter(const AName, ADelim: string; const AData: TSwitchData): string;
     procedure AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
     function Wrap(const AName: string; const AData: TSwitchData): string;
     function LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
   public
-    procedure Usage(const AParser: TGpCommandLineParser; const AWrapAtColumn: Integer;
+    procedure Usage(const AParser: TCommandLineParser; const AWrapAtColumn: Integer;
       var AUsageList: TArray<string>);
   end;
 
 var
-  GGpCommandLineParser: IGpCommandLineParser;
+  GGpCommandLineParser: ICommandLineParser;
 
 { exports }
 
-function CommandLineParser: IGpCommandLineParser;
+function CommandLineParser: ICommandLineParser;
 begin
   if not Assigned(GGpCommandLineParser) then
     GGpCommandLineParser := CreateCommandLineParser;
@@ -317,9 +317,9 @@ begin
   Result := GGpCommandLineParser;
 end;
 
-function CreateCommandLineParser: IGpCommandLineParser;
+function CreateCommandLineParser: ICommandLineParser;
 begin
-  Result := TGpCommandLineParser.Create;
+  Result := TCommandLineParser.Create;
 end;
 
 { CLPNameAttribute }
@@ -495,9 +495,9 @@ begin
   FProvided := True;
 end;
 
-{ TGpCommandLineParser }
+{ TCommandLineParser }
 
-constructor TGpCommandLineParser.Create;
+constructor TCommandLineParser.Create;
 begin
   inherited Create;
 
@@ -506,7 +506,7 @@ begin
   FSwitchDict := TDictionary<string,TSwitchData>.Create(FSwitchComparer);
 end;
 
-destructor TGpCommandLineParser.Destroy;
+destructor TCommandLineParser.Destroy;
 begin
   FreeAndNil(FSwitchDict);
   FreeAndNil(FSwitchList);
@@ -514,7 +514,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TGpCommandLineParser.AddSwitch(const AInstance: TObject; const APropertyName, AName: string;
+procedure TCommandLineParser.AddSwitch(const AInstance: TObject; const APropertyName, AName: string;
   const ALongNames: TCLPLongNames; const ASwitchType: TCLPSwitchType; const APosition: Integer;
   const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName: string);
 var
@@ -558,7 +558,7 @@ end;
 ///   At the same time creates an array of references to positional attributes,
 ///   FPositionals.
 ///	</summary>
-function TGpCommandLineParser.CheckAttributes: Boolean;
+function TCommandLineParser.CheckAttributes: Boolean;
 var
   LSwitchData: TSwitchData;
   LHasOptional: Boolean;
@@ -631,7 +631,7 @@ begin
           Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, LLongName.LongForm));
 end;
 
-function TGpCommandLineParser.FindExtendableSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
+function TCommandLineParser.FindExtendableSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
 var
   kv: TPair<string, TSwitchData>;
 begin
@@ -650,7 +650,7 @@ begin
   end;
 end;
 
-function TGpCommandLineParser.GetCommandLine: string;
+function TCommandLineParser.GetCommandLine: string;
 var
   LIndex: Integer;
 begin
@@ -668,12 +668,12 @@ begin
   end;
 end;
 
-function TGpCommandLineParser.GetErrorInfo: TCLPErrorInfo;
+function TCommandLineParser.GetErrorInfo: TCLPErrorInfo;
 begin
   Result := FErrorInfo;
 end;
 
-function TGpCommandLineParser.GetExtension(const ASwitch: string): string;
+function TCommandLineParser.GetExtension(const ASwitch: string): string;
 var
   LSwitchData: TSwitchData;
 begin
@@ -686,12 +686,12 @@ begin
   Result := LSwitchData.ParamValue;
 end;
 
-function TGpCommandLineParser.GetOptions: TCLPOptions;
+function TCommandLineParser.GetOptions: TCLPOptions;
 begin
   Result := FOptions;
 end;
 
-function TGpCommandLineParser.GrabNextElement(var s, el: string): Boolean;
+function TCommandLineParser.GrabNextElement(var s, el: string): Boolean;
 var
   LPosition: Integer;
 begin
@@ -733,9 +733,9 @@ begin
   end;
 
   Result := True;
-end; { TGpCommandLineParser.GrabNextElement }
+end; { TCommandLineParser.GrabNextElement }
 
-function TGpCommandLineParser.IsSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
+function TCommandLineParser.IsSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
 var
   LDelimPos: Integer;
   LMinPos: Integer;
@@ -800,7 +800,7 @@ begin
   end;
 end;
 
-function TGpCommandLineParser.MapPropertyType(const AProp: TRttiProperty): TCLPSwitchType;
+function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty): TCLPSwitchType;
 begin
   case AProp.PropertyType.TypeKind of
     tkInteger, tkInt64:
@@ -817,7 +817,7 @@ begin
   end;
 end;
 
-function TGpCommandLineParser.Parse(const ACommandLine: string; const ACommandData: TObject): Boolean;
+function TCommandLineParser.Parse(const ACommandLine: string; const ACommandData: TObject): Boolean;
 begin
   FSwitchDict.Clear;
   SetLength(FPositionals, 0);
@@ -833,12 +833,12 @@ begin
     Result := ProcessCommandLine(ACommandData, ACommandLine);
 end;
 
-function TGpCommandLineParser.Parse(const ACommandData: TObject): Boolean;
+function TCommandLineParser.Parse(const ACommandData: TObject): Boolean;
 begin
   Result := Parse(GetCommandLine, ACommandData);
 end;
 
-procedure TGpCommandLineParser.ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty);
+procedure TCommandLineParser.ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty);
 
   procedure AddLongName(const ALongForm, AShortForm: string; var ALongNames: TCLPLongNames);
   begin
@@ -901,7 +901,7 @@ begin
     LOptions, LDefault, Trim(LDescription), Trim(LParamName));
 end;
 
-function TGpCommandLineParser.ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
+function TCommandLineParser.ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
 var
   LSwitchData: TSwitchData;
   Lel: string;
@@ -975,7 +975,7 @@ begin
       Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, LSwitchData.LongNames[0].LongForm));
 end;
 
-procedure TGpCommandLineParser.ProcessDefinitionClass(const ACommandData: TObject);
+procedure TCommandLineParser.ProcessDefinitionClass(const ACommandData: TObject);
 var
   LContext: TRttiContext;
   LProperty: TRttiProperty;
@@ -989,7 +989,7 @@ begin
       ProcessAttributes(ACommandData, LProperty);
 end;
 
-function TGpCommandLineParser.SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed;
+function TCommandLineParser.SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed;
   const AText: string; const APosition: Integer; const ASwitchName: string): Boolean;
 begin
   FErrorInfo.Kind := AKind;
@@ -1002,16 +1002,16 @@ begin
   Result := False;
 end;
 
-procedure TGpCommandLineParser.SetOptions(const AValue: TCLPOptions);
+procedure TCommandLineParser.SetOptions(const AValue: TCLPOptions);
 begin
   FOptions := AValue;
 end;
 
-function TGpCommandLineParser.Usage(const AWrapAtColumn: Integer): TArray<string>;
+function TCommandLineParser.Usage(const AWrapAtColumn: Integer): TArray<string>;
 var
-  LFormatter: TGpUsageFormatter;
+  LFormatter: TUsageFormatter;
 begin
-  LFormatter := TGpUsageFormatter.Create;
+  LFormatter := TUsageFormatter.Create;
   try
     LFormatter.Usage(Self, AWrapAtColumn, Result);
   finally
@@ -1019,9 +1019,9 @@ begin
   end;
 end;
 
-{ TGpUsageFormatter }
+{ TUsageFormatter }
 
-function TGpUsageFormatter.AddParameter(const AName, ADelim: string; const AData: TSwitchData): string;
+function TUsageFormatter.AddParameter(const AName, ADelim: string; const AData: TSwitchData): string;
 begin
   if AData.SwitchType = stBoolean then
     Result := AName
@@ -1034,7 +1034,7 @@ begin
     Result := FSwitchDelims[0] + Result;
 end;
 
-procedure TGpUsageFormatter.AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
+procedure TUsageFormatter.AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
 var
   LIndex: Integer;
   LMaxPos: Integer;
@@ -1080,7 +1080,7 @@ begin
   end;
 end;
 
-function TGpUsageFormatter.LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
+function TUsageFormatter.LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
 begin
   Result := AStartPos - 1;
 
@@ -1088,7 +1088,7 @@ begin
     Dec(Result);
 end;
 
-procedure TGpUsageFormatter.Usage(const AParser: TGpCommandLineParser; const AWrapAtColumn: Integer;
+procedure TUsageFormatter.Usage(const AParser: TCommandLineParser; const AWrapAtColumn: Integer;
   var AUsageList: TArray<string>);
 var
   LAddedOptions: Boolean;
@@ -1169,7 +1169,7 @@ begin
   end;
 end;
 
-function TGpUsageFormatter.Wrap(const AName: string; const AData: TSwitchData): string;
+function TUsageFormatter.Wrap(const AName: string; const AData: TSwitchData): string;
 begin
   if not (soRequired in AData.Options) then
     Result := '[' + AName + ']'
