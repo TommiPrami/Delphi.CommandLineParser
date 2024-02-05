@@ -1,8 +1,7 @@
 ﻿unit Delphi.CommandLineParser;
 
-{
-  Check https://github.com/TommiPrami/Delphi.CommandLineParser/blob/main/README.md for more information
-}
+{ Check https://github.com/TommiPrami/Delphi.CommandLineParser/blob/main/README.md for more information }
+
 interface
 
 uses
