@@ -1,19 +1,8 @@
 ﻿unit Delphi.CommandLineParser;
 
-{ Chages to original: https://github.com/gabr42/GpDelphiUnits - GpCommandLineParser.pas
-  * Code changes are, at least some, are shared back to the original repository, as pull reguest. Primoz seems to be 
-    super busy, so I need to make my own version, to subject it to our code formattuing rules. I bet is better this way.
-    If someone is committed to some formatting and coding standard for decades, I bet they are not too happy to have 
-    multiple standards in  their own repository.
-
-  - Formatting changed to more standard
-  - Added possibility to have default as true boolean parameter, and ability to make it false:
-    - -BoolParam:False (1/0, true/false, t/f should be supported)
-  - Default parameter stwiths in windows is "-" (not "/" character)
-  - Some comments that _I_ think that are not needed, like version history, are removed, and some will be moved in the 
-    readme.md etc...
+{
+  Check https://github.com/TommiPrami/Delphi.CommandLineParser/blob/main/README.md for more information
 }
-
 interface
 
 uses
