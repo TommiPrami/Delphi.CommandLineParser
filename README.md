@@ -1,5 +1,7 @@
 # Delphi.CommandLineParser
-Slightly modified version of the : https://github.com/gabr42/GpDelphiUnits
+Slightly modified version of the : https://github.com/gabr42/GpDelphiUnits *by* @gabr42
+
+*Original BSD-3 License applies*
 
 example parameter configuration
 
