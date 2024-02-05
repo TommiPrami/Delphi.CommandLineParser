@@ -45,5 +45,8 @@ type
 
     [CLPPositionRest, CLPDescription('Extra files'), CLPName('extra_files')]
     property ExtraFiles: string read FExtraFiles write FExtraFiles;
+
+    [CLPLongName('BooleanParamDefaultAsTrue'), CLPDescription('Boolean Param Default As True ', '<True/False>'), CLPDefault('True')]
+    property BooleanParamDefaultAsTrue: Boolean read FUsePDFium write FUsePDFium;
   end;
 ```
