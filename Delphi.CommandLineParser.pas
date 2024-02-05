@@ -250,7 +250,7 @@ const
   {$ELSE}
     FSwitchDelims: array [0..1] of string = ('--', '-');
   {$ENDIF}
-    FParamDelims : array [0..1] of char = (':', '=');
+    FParamDelims : array [0..1] of Char = (':', '=');
 
 type
   TGpCommandLineParser = class(TInterfacedObject, IGpCommandLineParser)
@@ -311,7 +311,7 @@ var
 
 function CommandLineParser: IGpCommandLineParser;
 begin
-  if not assigned(GGpCommandLineParser) then
+  if not Assigned(GGpCommandLineParser) then
     GGpCommandLineParser := CreateCommandLineParser;
 
   Result := GGpCommandLineParser;
@@ -370,7 +370,7 @@ constructor CLPPositionAttribute.Create(const APosition: Integer);
 begin
   inherited Create;
 
-  FPosition := position;
+  FPosition := APosition;
 end;
 
 { TCLPLongName }
@@ -404,47 +404,48 @@ end;
 
 function TSwitchData.AppendValue(const AValue, ADelim: string; const ADoQuote: Boolean): Boolean;
 var
-  s: string;
+  LStringValue: string;
 begin
-  s := GetValue;
+  LStringValue := GetValue;
 
-  if s <> '' then
-    s := s + ADelim;
+  if LStringValue <> '' then
+    LStringValue := LStringValue + ADelim;
 
   if ADoQuote then
-    s := s + Quote(AValue)
+    LStringValue := LStringValue + Quote(AValue)
   else
-    s := s + AValue;
+    LStringValue := LStringValue + AValue;
 
-  Result := SetValue(s);
+  Result := SetValue(LStringValue);
 end;
 
 procedure TSwitchData.Enable;
 var
   LContext: TRttiContext;
-  prop: TRttiProperty;
-  typ: TRttiType;
+  LProperty: TRttiProperty;
+  LRtttiType: TRttiType;
 begin
   if SwitchType <> stBoolean then
     raise Exception.Create('TSwitchData.Enable: Not supported');
 
   LContext := TRttiContext.Create;
-  typ := LContext.GetType(FInstance.ClassType);
-  prop := typ.GetProperty(FPropertyName);
-  prop.SetValue(FInstance, True);
+  LRtttiType := LContext.GetType(FInstance.ClassType);
+  LProperty := LRtttiType.GetProperty(FPropertyName);
+  LProperty.SetValue(FInstance, True);
   FProvided := True;
 end;
 
 function TSwitchData.GetValue: string;
 var
   LContext: TRttiContext;
-  prop: TRttiProperty;
-  typ: TRttiType;
+  LProperty: TRttiProperty;
+  LRtttiType: TRttiType;
 begin
   LContext := TRttiContext.Create;
-  typ := LContext.GetType(FInstance.ClassType);
-  prop := typ.GetProperty(FPropertyName);
-  Result := prop.GetValue(FInstance).AsString;
+
+  LRtttiType := LContext.GetType(FInstance.ClassType);
+  LProperty := LRtttiType.GetProperty(FPropertyName);
+  Result := LProperty.GetValue(FInstance).AsString;
 end;
 
 function TSwitchData.Quote(const AValue: string): string;
@@ -457,33 +458,35 @@ end;
 
 function TSwitchData.SetValue(const AValue: string): Boolean;
 var
-  c: Integer;
+  LCode: Integer;
   LContext: TRttiContext;
-  iValue: Integer;
-  prop: TRttiProperty;
-  typ: TRttiType;
+  LIntegerValue: Integer;
+  LProperty: TRttiProperty;
+  LRtttiType: TRttiType;
 begin
   Result := True;
+
   LContext := TRttiContext.Create;
-  typ := LContext.GetType(FInstance.ClassType);
-  prop := typ.GetProperty(FPropertyName);
+
+  LRtttiType := LContext.GetType(FInstance.ClassType);
+  LProperty := LRtttiType.GetProperty(FPropertyName);
 
   case SwitchType of
     stString:
-      prop.SetValue(FInstance, AValue);
+      LProperty.SetValue(FInstance, AValue);
     stInteger:
       begin
-        Val(AValue, iValue, c);
+        Val(AValue, LIntegerValue, LCode);
 
-        if c <> 0 then
+        if LCode <> 0 then
           Exit(False);
 
-        prop.SetValue(FInstance, iValue);
+        LProperty.SetValue(FInstance, LIntegerValue);
       end;
     stBoolean:
       begin
         if TryStrToBool(AValue, Result) then
-          prop.SetValue(FInstance, Result);
+          LProperty.SetValue(FInstance, Result);
       end;
     else
       raise Exception.Create('TSwitchData.SetValue: Not supported');
@@ -515,25 +518,25 @@ procedure TGpCommandLineParser.AddSwitch(const AInstance: TObject; const AProper
   const ALongNames: TCLPLongNames; const ASwitchType: TCLPSwitchType; const APosition: Integer;
   const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName: string);
 var
-  data: TSwitchData;
+  LSwitchData: TSwitchData;
   LIndex: Integer;
-  longName: TCLPLongName;
+  LLongName: TCLPLongName;
 begin
-  data := TSwitchData.Create(AInstance, APropertyName, AName, ALongNames, ASwitchType,
+  LSwitchData := TSwitchData.Create(AInstance, APropertyName, AName, ALongNames, ASwitchType,
     APosition, AOptions, ADefaultValue, ADescription, AParamName);
 
-  FSwitchList.Add(data);
+  FSwitchList.Add(LSwitchData);
 
   if AName <> '' then
-    FSwitchDict.Add(AName, data);
+    FSwitchDict.Add(AName, LSwitchData);
 
-  for longName in ALongNames do
+  for LLongName in ALongNames do
   begin
-    FSwitchDict.Add(longName.LongForm, data);
+    FSwitchDict.Add(LLongName.LongForm, LSwitchData);
 
-    if longName.ShortForm <> '' then
-      for LIndex := Length(longName.ShortForm) to Length(longName.LongForm) - 1 do
-        FSwitchDict.AddOrSetValue(Copy(longName.LongForm, 1, LIndex), data);
+    if LLongName.ShortForm <> '' then
+      for LIndex := Length(LLongName.ShortForm) to Length(LLongName.LongForm) - 1 do
+        FSwitchDict.AddOrSetValue(Copy(LLongName.LongForm, 1, LIndex), LSwitchData);
   end;
 end;
 
@@ -557,75 +560,75 @@ end;
 ///	</summary>
 function TGpCommandLineParser.CheckAttributes: Boolean;
 var
-  data: TSwitchData;
-  hasOptional: Boolean;
-  highPos: Integer;
+  LSwitchData: TSwitchData;
+  LHasOptional: Boolean;
+  LHighPos: Integer;
   LIndex: Integer;
-  longName: TCLPLongName;
-  positionRest: TSwitchData;
+  LLongName: TCLPLongName;
+  LPositionRest: TSwitchData;
 begin
   Result := True;
 
-  highPos := 0;
-  hasOptional := False;
-  positionRest := nil;
+  LHighPos := 0;
+  LHasOptional := False;
+  LPositionRest := nil;
 
-  for data in FSwitchList do
-    if soPositional in data.Options then
+  for LSwitchData in FSwitchList do
+    if soPositional in LSwitchData.Options then
     begin
-      if soPositionRest in data.Options then
+      if soPositionRest in LSwitchData.Options then
       begin
-        if assigned(positionRest) then
-          Exit(SetError(ekPositionalsBadlyDefined, edExtraCLPPositionRest, SOnlyOneCLPPositionRestPropertyIs, 0, data.PropertyName))
-        else if data.SwitchType <> stString then
-          Exit(SetError(ekPositionalsBadlyDefined, edCLPPositionRestNotString, STypeOfACLPPositionRestPropertyMu, 0, data.PropertyName))
+        if Assigned(LPositionRest) then
+          Exit(SetError(ekPositionalsBadlyDefined, edExtraCLPPositionRest, SOnlyOneCLPPositionRestPropertyIs, 0, LSwitchData.PropertyName))
+        else if LSwitchData.SwitchType <> stString then
+          Exit(SetError(ekPositionalsBadlyDefined, edCLPPositionRestNotString, STypeOfACLPPositionRestPropertyMu, 0, LSwitchData.PropertyName))
         else
-          positionRest := data;
+          LPositionRest := LSwitchData;
       end
       else
       begin
-        if data.Position <= 0 then
-          Exit(SetError(ekPositionalsBadlyDefined, edPositionNotPositive, SPositionMustBeGreaterOrEqualTo1, data.Position))
-        else if data.Position > highPos then
-          highPos := data.Position;
+        if LSwitchData.Position <= 0 then
+          Exit(SetError(ekPositionalsBadlyDefined, edPositionNotPositive, SPositionMustBeGreaterOrEqualTo1, LSwitchData.Position))
+        else if LSwitchData.Position > LHighPos then
+          LHighPos := LSwitchData.Position;
       end;
 
-      if not (soRequired in data.Options) then
-        hasOptional := False
-      else if hasOptional then
-        Exit(SetError(ekPositionalsBadlyDefined, edRequiredAfterOptional, SRequiredPositionalParametersMust, data.Position));
+      if not (soRequired in LSwitchData.Options) then
+        LHasOptional := False
+      else if LHasOptional then
+        Exit(SetError(ekPositionalsBadlyDefined, edRequiredAfterOptional, SRequiredPositionalParametersMust, LSwitchData.Position));
     end;
 
-  if assigned(positionRest) then
+  if Assigned(LPositionRest) then
   begin
-    Inc(highPos);
-    positionRest.Position := highPos;
+    Inc(LHighPos);
+    LPositionRest.Position := LHighPos;
   end;
 
-  if highPos = 0 then
+  if LHighPos = 0 then
     Exit(True);
 
-  SetLength(FPositionals, highPos);
+  SetLength(FPositionals, LHighPos);
   for LIndex := Low(FPositionals) to High(FPositionals) do
     FPositionals[LIndex] := nil;
 
-  for data in FSwitchList do
-    if soPositional in data.Options then
-      FPositionals[data.Position-1] := data;
+  for LSwitchData in FSwitchList do
+    if soPositional in LSwitchData.Options then
+      FPositionals[LSwitchData.Position-1] := LSwitchData;
 
   for LIndex := Low(FPositionals) to High(FPositionals) do
     if FPositionals[LIndex] = nil then
       Exit(SetError(ekPositionalsBadlyDefined, edMissingPositionalDefinition, SMissingPositionalParameterDefini, LIndex + 1));
 
-  for data in FSwitchList do
-    if not (soPositional in data.Options) then
-      if (data.Name = '') and (Length(data.LongNames) = 0) then
-        Exit(SetError(ekNameNotDefined, edMissingNameForProperty, SMissingNameForProperty, 0, data.PropertyName))
-      else if (data.Name <> '') and (Length(data.Name) <> 1) then
-        Exit(SetError(ekShortNameTooLong, edShortNameTooLong, SShortNameMustBeOneLetterLong, 0, data.Name))
-      else for longName in data.LongNames do
-        if (longName.ShortForm <> '') and (not StartsText(longName.ShortForm, longName.LongForm)) then
-          Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, longName.LongForm));
+  for LSwitchData in FSwitchList do
+    if not (soPositional in LSwitchData.Options) then
+      if (LSwitchData.Name = '') and (Length(LSwitchData.LongNames) = 0) then
+        Exit(SetError(ekNameNotDefined, edMissingNameForProperty, SMissingNameForProperty, 0, LSwitchData.PropertyName))
+      else if (LSwitchData.Name <> '') and (Length(LSwitchData.Name) <> 1) then
+        Exit(SetError(ekShortNameTooLong, edShortNameTooLong, SShortNameMustBeOneLetterLong, 0, LSwitchData.Name))
+      else for LLongName in LSwitchData.LongNames do
+        if (LLongName.ShortForm <> '') and (not StartsText(LLongName.ShortForm, LLongName.LongForm)) then
+          Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, LLongName.LongForm));
 end;
 
 function TGpCommandLineParser.FindExtendableSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
@@ -672,15 +675,15 @@ end;
 
 function TGpCommandLineParser.GetExtension(const ASwitch: string): string;
 var
-  LData: TSwitchData;
+  LSwitchData: TSwitchData;
 begin
-  if not FSwitchDict.TryGetValue(ASwitch, LData) then
+  if not FSwitchDict.TryGetValue(ASwitch, LSwitchData) then
     raise Exception.CreateFmt('Switch %s is not defined', [ASwitch]);
 
-  if not (soExtendable in LData.Options) then
+  if not (soExtendable in LSwitchData.Options) then
     raise Exception.CreateFmt('Switch %s is not extendable', [ASwitch]);
 
-  Result := LData.ParamValue;
+  Result := LSwitchData.ParamValue;
 end;
 
 function TGpCommandLineParser.GetOptions: TCLPOptions;
@@ -690,7 +693,7 @@ end;
 
 function TGpCommandLineParser.GrabNextElement(var s, el: string): Boolean;
 var
-  p: Integer;
+  LPosition: Integer;
 begin
   el := '';
   s := TrimLeft(s);
@@ -701,13 +704,13 @@ begin
   if s[1] = '"' then
   begin
     repeat
-      p := PosEx('"', s, 2);
+      LPosition := PosEx('"', s, 2);
 
-      if p <= 0 then //unterminated quote
-        p := Length(s);
+      if LPosition <= 0 then //unterminated quote
+        LPosition := Length(s);
 
-      el := el + Copy(s, 1, p);
-      Delete(s, 1, p);
+      el := el + Copy(s, 1, LPosition);
+      Delete(s, 1, LPosition);
     until (s = '') or (s[1] <> '"');
 
     Delete(el, 1, 1);
@@ -717,15 +720,16 @@ begin
 
     el := StringReplace(el, '""', '"', [rfReplaceAll]);
   end
-  else begin
-    p := Pos(' ', s);
+  else 
+  begin
+    LPosition := Pos(' ', s);
 
-    if p <= 0 then //last element
-      p := Length(s) + 1;
+    if LPosition <= 0 then //last element
+      LPosition := Length(s) + 1;
 
-    el := Copy(s, 1, p-1);
+    el := Copy(s, 1, LPosition-1);
 
-    Delete(s, 1, p);
+    Delete(s, 1, LPosition);
   end;
 
   Result := True;
@@ -733,25 +737,25 @@ end; { TGpCommandLineParser.GrabNextElement }
 
 function TGpCommandLineParser.IsSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
 var
-  delimPos: Integer;
-  minPos  : Integer;
-  name    : string;
-  pd      : char;
-  sd      : string;
-  trimEl  : string;
+  LDelimPos: Integer;
+  LMinPos: Integer;
+  LName: string;
+  LPd: Char;
+  LSd: string;
+  LTrimEl: string;
 begin
   Result := False;
   AParam := '';
 
-  trimEl := AEl;
-  for sd in FSwitchDelims do
-    if StartsStr(sd, trimEl) then
+  LTrimEl := AEl;
+  for LSd in FSwitchDelims do
+    if StartsStr(LSd, LTrimEl) then
     begin
-      trimEl := AEl;
+      LTrimEl := AEl;
 
-      Delete(trimEl, 1, Length(sd));
+      Delete(LTrimEl, 1, Length(LSd));
 
-      if trimEl <> '' then
+      if LTrimEl <> '' then
         Result := True;
 
       Break;
@@ -759,34 +763,34 @@ begin
 
   if Result then //try to extract parameter data
   begin
-    Name := trimEl;
-    minPos := 0;
+    LName := LTrimEl;
+    LMinPos := 0;
 
-    for pd in FParamDelims do
+    for LPd in FParamDelims do
     begin
-      delimPos := Pos(pd, name);
+      LDelimPos := Pos(LPd, LName);
 
-      if (delimPos > 0) and ((minPos = 0) or (delimPos < minPos)) then
-        minPos := delimPos;
+      if (LDelimPos > 0) and ((LMinPos = 0) or (LDelimPos < LMinPos)) then
+        LMinPos := LDelimPos;
     end;
 
-    if minPos > 0 then
+    if LMinPos > 0 then
     begin
-      AParam := name;
-      Delete(AParam, 1, minPos);
-      name := Copy(name, 1, minPos - 1);
+      AParam := LName;
+      Delete(AParam, 1, LMinPos);
+      LName := Copy(LName, 1, LMinPos - 1);
     end;
 
-    FSwitchDict.TryGetValue(name, AData);
+    FSwitchDict.TryGetValue(LName, AData);
 
-    if not assigned(AData) then //try extendable switches
-      FindExtendableSwitch(name, AParam, AData);
+    if not Assigned(AData) then //try extendable switches
+      FindExtendableSwitch(LName, AParam, AData);
 
-    if not assigned(AData) then //try short name
+    if not Assigned(AData) then //try short name
     begin
-      if FSwitchDict.TryGetValue(trimEl[1], AData) then
+      if FSwitchDict.TryGetValue(LTrimEl[1], AData) then
       begin
-        AParam := trimEl;
+        AParam := LTrimEl;
         Delete(AParam, 1, 1);
 
         if (AParam <> '') and (AData.SwitchType = stBoolean) then //misdetection, Boolean switch cannot accept data
@@ -835,153 +839,154 @@ begin
 end;
 
 procedure TGpCommandLineParser.ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty);
-var
-  attr       : TCustomAttribute;
-  default    : string;
-  description: string;
-  longNames  : TCLPLongNames;
-  name       : string;
-  options    : TCLPSwitchOptions;
-  paramName  : string;
-  position   : Integer;
 
-  procedure AddLongName(const longForm, shortForm: string);
+  procedure AddLongName(const ALongForm, AShortForm: string; var ALongNames: TCLPLongNames);
   begin
-    SetLength(longNames, Length(longNames) + 1);
-    longNames[High(longNames)] := TCLPLongName.Create(longForm, shortForm);
+    SetLength(ALongNames, Length(ALongNames) + 1);
+
+    ALongNames[High(ALongNames)] := TCLPLongName.Create(ALongForm, AShortForm);
   end;
 
+var
+  LAttribute: TCustomAttribute;
+  LDefault: string;
+  LDescription: string;
+  LLongNames: TCLPLongNames;
+  LNName: string;
+  LOptions: TCLPSwitchOptions;
+  LParamName: string;
+  LPosition: Integer;
 begin
-  name := '';
-  description := '';
-  paramName := CLPDescriptionAttribute.DefaultValue;
-  options := [];
-  position := 0;
+  LNName := '';
+  LDescription := '';
+  LParamName := CLPDescriptionAttribute.DefaultValue;
+  LOptions := [];
+  LPosition := 0;
 
-  SetLength(longNames, 0);
+  SetLength(LLongNames, 0);
 
-  for attr in AProp.GetAttributes do
+  for LAttribute in AProp.GetAttributes do
   begin
-    if attr is CLPNameAttribute then
-      name := CLPNameAttribute(attr).Name
-    else if attr is CLPLongNameAttribute then
+    if LAttribute is CLPNameAttribute then
+      LNName := CLPNameAttribute(LAttribute).Name
+    else if LAttribute is CLPLongNameAttribute then
+      AddLongName(CLPLongNameAttribute(LAttribute).LongName, CLPLongNameAttribute(LAttribute).ShortForm, LLongNames)
+    else if LAttribute is CLPDefaultAttribute then
+      LDefault := CLPDefaultAttribute(LAttribute).DefaultValue
+    else if LAttribute is CLPDescriptionAttribute then
     begin
-      AddLongName(CLPLongNameAttribute(attr).LongName, CLPLongNameAttribute(attr).ShortForm);
+      LDescription := CLPDescriptionAttribute(LAttribute).Description;
+      LParamName := CLPDescriptionAttribute(LAttribute).paramName;
     end
-    else if attr is CLPDefaultAttribute then
-      default := CLPDefaultAttribute(attr).DefaultValue
-    else if attr is CLPDescriptionAttribute then
+    else if LAttribute is CLPRequiredAttribute then
+      Include(LOptions, soRequired)
+    else if LAttribute is CLPExtendableAttribute then
+      Include(LOptions, soExtendable)
+    else if LAttribute is CLPPositionAttribute then
     begin
-      description := CLPDescriptionAttribute(attr).Description;
-      paramName := CLPDescriptionAttribute(attr).paramName;
+      LPosition := CLPPositionAttribute(LAttribute).Position;
+      Include(LOptions, soPositional);
     end
-    else if attr is CLPRequiredAttribute then
-      Include(options, soRequired)
-    else if attr is CLPExtendableAttribute then
-      Include(options, soExtendable)
-    else if attr is CLPPositionAttribute then begin
-      position := CLPPositionAttribute(attr).Position;
-      Include(options, soPositional);
-    end
-    else if attr is CLPPositionRestAttribute then begin
-      Include(options, soPositional);
-      Include(options, soPositionRest);
+    else if LAttribute is CLPPositionRestAttribute then
+    begin
+      Include(LOptions, soPositional);
+      Include(LOptions, soPositionRest);
     end;
   end; //for attr
 
-  if (Length(longNames) = 0) and (not SameText(AProp.Name, Trim(Name))) then
-    AddLongName(AProp.Name, '');
+  if (Length(LLongNames) = 0) and (not SameText(AProp.Name, Trim(LNName))) then
+    AddLongName(AProp.Name, '', LLongNames);
 
-  AddSwitch(AInstance, AProp.Name, Trim(name), LongNames, MapPropertyType(AProp), Position,
-    Options, Default, Trim(Description), Trim(ParamName));
+  AddSwitch(AInstance, AProp.Name, Trim(LNName), LLongNames, MapPropertyType(AProp), LPosition,
+    LOptions, LDefault, Trim(LDescription), Trim(LParamName));
 end;
 
 function TGpCommandLineParser.ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
 var
-  data: TSwitchData;
-  el: string;
-  param: string;
-  position: Integer;
-  s: string;
+  LSwitchData: TSwitchData;
+  Lel: string;
+  LParam: string;
+  LPosition: Integer;
+  Ls: string;
 begin
   Result := True;
 
-  for data in FSwitchList do
-    if data.DefaultValue <> '' then
-      data.SetValue(data.DefaultValue);
+  for LSwitchData in FSwitchList do
+    if LSwitchData.DefaultValue <> '' then
+      LSwitchData.SetValue(LSwitchData.DefaultValue);
 
-  position := 1;
-  s := ACommandLine;
+  LPosition := 1;
+  Ls := ACommandLine;
 
-  while GrabNextElement(s, el) do
+  while GrabNextElement(Ls, Lel) do
   begin
-    if IsSwitch(el, param, data) then
+    if IsSwitch(Lel, LParam, LSwitchData) then
     begin
-      if not assigned(data) then
+      if not Assigned(LSwitchData) then
         if opIgnoreUnknownSwitches in FOptions then
           continue //while
         else
-          Exit(SetError(ekUnknownNamed, edUnknownSwitch, SUnknownSwitch, 0, el));
+          Exit(SetError(ekUnknownNamed, edUnknownSwitch, SUnknownSwitch, 0, Lel));
 
-      if data.SwitchType = stBoolean then
+      if LSwitchData.SwitchType = stBoolean then
       begin
-        if (param = '') or (soExtendable in data.Options) then
+        if (LParam = '') or (soExtendable in LSwitchData.Options) then
         begin
-          data.Enable;
+          LSwitchData.Enable;
 
-          if param <> '' then
-            data.ParamValue := param;
+          if LParam <> '' then
+            LSwitchData.ParamValue := LParam;
         end
         else
-          Exit(SetError(ekInvalidData, edBooleanWithData, SBooleanSwitchCannotAcceptData, 0, el));
+          Exit(SetError(ekInvalidData, edBooleanWithData, SBooleanSwitchCannotAcceptData, 0, Lel));
       end
-      else if param <> '' then
-        if not data.SetValue(param) then
-          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, el));
+      else if LParam <> '' then
+        if not LSwitchData.SetValue(LParam) then
+          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, Lel));
     end
     else
     begin
-      if (Position - 1) > High(FPositionals) then
-        Exit(SetError(ekExtraPositional, edTooManyPositionalArguments, STooManyPositionalArguments, 0, el));
+      if (LPosition - 1) > High(FPositionals) then
+        Exit(SetError(ekExtraPositional, edTooManyPositionalArguments, STooManyPositionalArguments, 0, Lel));
 
-      data := FPositionals[position-1];
+      LSwitchData := FPositionals[LPosition - 1];
 
-      if soPositionRest in data.Options then
+      if soPositionRest in LSwitchData.Options then
       begin
-        if not data.AppendValue(el, #13, False) then
-          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, el));
+        if not LSwitchData.AppendValue(Lel, #13, False) then
+          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, Lel));
       end
       else
       begin
-        if not data.SetValue(el) then
-          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, el));
+        if not LSwitchData.SetValue(Lel) then
+          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, Lel));
 
-        Inc(position);
+        Inc(LPosition);
       end;
     end;
   end; //while s <> ''
 
-  for data in FPositionals do
-    if (soRequired in data.Options) and (not data.Provided) then
-      Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, data.Position, data.LongNames[0].LongForm));
+  for LSwitchData in FPositionals do
+    if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
+      Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
 
-  for data in FSwitchlist do
-    if (soRequired in data.Options) and (not data.Provided) then
-      Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, data.LongNames[0].LongForm));
+  for LSwitchData in FSwitchlist do
+    if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
+      Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, LSwitchData.LongNames[0].LongForm));
 end;
 
 procedure TGpCommandLineParser.ProcessDefinitionClass(const ACommandData: TObject);
 var
   LContext: TRttiContext;
-  prop: TRttiProperty;
-  typ: TRttiType;
+  LProperty: TRttiProperty;
+  LRttiType: TRttiType;
 begin
   LContext := TRttiContext.Create;
-  typ := LContext.GetType(ACommandData.ClassType);
+  LRttiType := LContext.GetType(ACommandData.ClassType);
 
-  for prop in typ.GetProperties do
-    if prop.Parent = typ then
-      ProcessAttributes(ACommandData, prop);
+  for LProperty in LRttiType.GetProperties do
+    if LProperty.Parent = LRttiType then
+      ProcessAttributes(ACommandData, LProperty);
 end;
 
 function TGpCommandLineParser.SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed;
@@ -1004,13 +1009,13 @@ end;
 
 function TGpCommandLineParser.Usage(const AWrapAtColumn: Integer): TArray<string>;
 var
-  formatter: TGpUsageFormatter;
+  LFormatter: TGpUsageFormatter;
 begin
-  formatter := TGpUsageFormatter.Create;
+  LFormatter := TGpUsageFormatter.Create;
   try
-    formatter.Usage(Self, AWrapAtColumn, Result);
+    LFormatter.Usage(Self, AWrapAtColumn, Result);
   finally
-    FreeAndNil(formatter);
+    FreeAndNil(LFormatter);
   end;
 end;
 
@@ -1032,41 +1037,41 @@ end;
 procedure TGpUsageFormatter.AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
 var
   LIndex: Integer;
-  maxPos: Integer;
-  posDel: Integer;
-  s: string;
+  LMaxPos: Integer;
+  LPosDel: Integer;
+  LStringValue: string;
 begin
-  maxPos := 0;
+  LMaxPos := 0;
 
-  for s in ASl do
+  for LStringValue in ASl do
   begin
-    posDel := Pos(' -', s);
+    LPosDel := Pos(' -', LStringValue);
 
-    if posDel > maxPos then
-      maxPos := posDel;
+    if LPosDel > LMaxPos then
+      LMaxPos := LPosDel;
   end;
 
   LIndex := 0;
 
   while LIndex < ASl.Count do
   begin
-    s := ASl[LIndex];
-    posDel := Pos(' -', s);
+    LStringValue := ASl[LIndex];
+    LPosDel := Pos(' -', LStringValue);
 
-    if (posDel > 0) and (posDel < maxPos) then
+    if (LPosDel > 0) and (LPosDel < LMaxPos) then
     begin
-      Insert(StringOfChar(' ', maxPos - posDel), s, posDel);
-      ASl[LIndex] := s;
+      Insert(StringOfChar(' ', LMaxPos - LPosDel), LStringValue, LPosDel);
+      ASl[LIndex] := LStringValue;
     end;
 
-    if Length(s) >= AWrapAtColumn then
+    if Length(LStringValue) >= AWrapAtColumn then
     begin
-      posDel := LastSpaceBefore(s, AWrapAtColumn);
+      LPosDel := LastSpaceBefore(LStringValue, AWrapAtColumn);
 
-      if posDel > 0 then
+      if LPosDel > 0 then
       begin
-        ASl.Insert(LIndex + 1, StringOfChar(' ', maxPos + 2) + Copy(s, posDel + 1, Length(s) - posDel));
-        ASl[LIndex] := Copy(s, 1, posDel-1);
+        ASl.Insert(LIndex + 1, StringOfChar(' ', LMaxPos + 2) + Copy(LStringValue, LPosDel + 1, Length(LStringValue) - LPosDel));
+        ASl[LIndex] := Copy(LStringValue, 1, LPosDel-1);
         Inc(LIndex);
       end;
     end;
@@ -1086,81 +1091,81 @@ end;
 procedure TGpUsageFormatter.Usage(const AParser: TGpCommandLineParser; const AWrapAtColumn: Integer;
   var AUsageList: TArray<string>);
 var
-  addedOptions: Boolean;
-  cmdLine: string;
-  data: TSwitchData;
-  help: TStringList;
-  longName: TCLPLongName;
-  name: string;
-  name2: string;
+  LAddedOptions: Boolean;
+  LCommandLine: string;
+  LSwitchData: TSwitchData;
+  LHelp: TStringList;
+  LLongName: TCLPLongName;
+  LName: string;
+  LName2: string;
 begin
-  help := TStringList.Create;
+  LHelp := TStringList.Create;
   try
-    cmdLine := ExtractFileName(ParamStr(0));
+    LCommandLine := ExtractFileName(ParamStr(0));
 
-    for data in AParser.Positionals do
+    for LSwitchData in AParser.Positionals do
     begin
-      if not assigned(data) then //error in definition class
-        help.Add('*** missing ***')
+      if not Assigned(LSwitchData) then //error in definition class
+        LHelp.Add('*** missing ***')
       else
       begin
-        if data.Name <> '' then
-          name := data.Name
-        else if Length(data.LongNames) <> 0 then
-          name := data.LongNames[0].LongForm
+        if LSwitchData.Name <> '' then
+          LName := LSwitchData.Name
+        else if Length(LSwitchData.LongNames) <> 0 then
+          LName := LSwitchData.LongNames[0].LongForm
         else
-          name := IntToStr(data.Position);
+          LName := IntToStr(LSwitchData.Position);
 
-        cmdLine := cmdLine + ' ' + Wrap(name, data);
-        help.Add(Format('%s - %s', [Wrap(name, data), data.Description]));
+        LCommandLine := LCommandLine + ' ' + Wrap(LName, LSwitchData);
+        LHelp.Add(Format('%s - %s', [Wrap(LName, LSwitchData), LSwitchData.Description]));
       end;
     end; //for data in FPositionals
 
-    addedOptions := False;
+    LAddedOptions := False;
 
-    for data in AParser.SwitchList do
+    for LSwitchData in AParser.SwitchList do
     begin
-      if not (soPositional in data.Options) then
+      if not (soPositional in LSwitchData.Options) then
       begin
-        if not addedOptions then
+        if not LAddedOptions then
         begin
-          cmdLine := cmdLine + ' ' + SOptions;
-          addedOptions := True;
+          LCommandLine := LCommandLine + ' ' + SOptions;
+          LAddedOptions := True;
         end;
 
-        name := '';
+        LName := '';
 
-        if data.Name <> '' then
-          name := Wrap(AddParameter(data.Name, '', data), data);
+        if LSwitchData.Name <> '' then
+          LName := Wrap(AddParameter(LSwitchData.Name, '', LSwitchData), LSwitchData);
 
-        for longName in data.LongNames do
+        for LLongName in LSwitchData.LongNames do
         begin
-          name2 := Wrap(AddParameter(longName.LongForm, ':', data), data);
+          LName2 := Wrap(AddParameter(LLongName.LongForm, ':', LSwitchData), LSwitchData);
 
-          if name <> '' then
-            name := name + ', ';
+          if LName <> '' then
+            LName := LName + ', ';
 
-          name := name + name2;
+          LName := LName + LName2;
         end;
 
-        name := name + ' - ' + data.Description;
+        LName := LName + ' - ' + LSwitchData.Description;
 
-        if data.DefaultValue <> '' then
-          name := name + SDefault + data.DefaultValue;
+        if LSwitchData.DefaultValue <> '' then
+          LName := LName + SDefault + LSwitchData.DefaultValue;
 
-        help.Add(name);
+        LHelp.Add(LName);
       end;
     end;
 
     if AWrapAtColumn > 0 then
-      AlignAndWrap(help, AWrapAtColumn);
+      AlignAndWrap(LHelp, AWrapAtColumn);
 
-    help.Insert(0, cmdLine);
-    help.Insert(1, '');
+    LHelp.Insert(0, LCommandLine);
+    LHelp.Insert(1, '');
 
-    AUsageList := help.ToStringArray;
+    AUsageList := LHelp.ToStringArray;
   finally
-    FreeAndNil(help);
+    FreeAndNil(LHelp);
   end;
 end;
 
