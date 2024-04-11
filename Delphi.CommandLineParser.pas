@@ -1,16 +1,17 @@
 ﻿unit Delphi.CommandLineParser;
 
-{ Check https://github.com/TommiPrami/Delphi.CommandLineParser/blob/main/README.md for more information }
-
+{
+  Check https://github.com/TommiPrami/Delphi.CommandLineParser/blob/main/README.md for more information
+}
 interface
 
 uses
   System.SysUtils, System.TypInfo, System.RTTI;
 
 type
-  ///	<summary>
-  ///	  Specifies short (one letter) name for the switch.
-  ///	</summary>
+  ///  <summary>
+  ///    Specifies short (one letter) name for the switch.
+  ///  </summary>
   CLPNameAttribute = class(TCustomAttribute)
   strict private
     FName: string;
@@ -19,9 +20,9 @@ type
     property Name: string read FName;
   end;
 
-  ///	<summary>
-  ///	  Specifies long name for the switch. If not set, property name is used
-  ///	  for long name.
+  ///  <summary>
+  ///    Specifies long name for the switch. If not set, property name is used
+  ///    for long name.
   ///   A short form of the long name can also be provided which must match the beginning
   ///   of the long form. In this case, parser will accept shortened versions of the
   ///   long name, but no shorter than the short form.
@@ -29,7 +30,7 @@ type
   ///   will accept 'auto', 'autot', 'autote', 'autotes' and 'autotest', but not 'aut',
   ///   'au' and 'a'.
   ///   Multiple long names (alternate switches) can be provided for one entity.
-  ///	</summary>
+  ///  </summary>
   CLPLongNameAttribute = class(TCustomAttribute)
   strict private
     FLongName : string;
@@ -40,10 +41,10 @@ type
     property ShortForm: string read FShortForm;
   end;
 
-  ///	<summary>
-  ///	  Specifies default value which will be used if switch is not found on
-  ///	  the command line.
-  ///	</summary>
+  ///  <summary>
+  ///    Specifies default value which will be used if switch is not found on
+  ///    the command line.
+  ///  </summary>
   CLPDefaultAttribute = class(TCustomAttribute)
   strict private
     FDefaultValue: string;
@@ -52,9 +53,9 @@ type
     property DefaultValue: string read FDefaultValue;
   end;
 
-  ///	<summary>
-  ///	  Provides switch description, used for the Usage function.
-  ///	</summary>
+  ///  <summary>
+  ///    Provides switch description, used for the Usage function.
+  ///  </summary>
   CLPDescriptionAttribute = class(TCustomAttribute)
   strict private
     FDescription: string;
@@ -66,9 +67,9 @@ type
     property ParamName: string read FParamName;
   end;
 
-  ///	<summary>
-  ///	  When present, specifies that the switch is required.
-  ///	</summary>
+  ///  <summary>
+  ///    When present, specifies that the switch is required.
+  ///  </summary>
   CLPRequiredAttribute = class(TCustomAttribute)
   public
   end;
@@ -81,10 +82,10 @@ type
   public
   end;
 
-  ///	<summary>
-  ///	  Specifies position of a positional (unnamed) switch. First positional
-  ///	  switch has position 1.
-  ///	</summary>
+  ///  <summary>
+  ///    Specifies position of a positional (unnamed) switch. First positional
+  ///    switch has position 1.
+  ///  </summary>
   CLPPositionAttribute = class(TCustomAttribute)
   strict private
     FPosition: Integer;
@@ -93,10 +94,10 @@ type
     property Position: Integer read FPosition;
   end;
 
-  ///	<summary>
-  ///	  Specifies switch that will receive a #13-delimited list of all
-  ///	  positional parameters for which switch definitions don't exist.
-  ///	</summary>
+  ///  <summary>
+  ///    Specifies switch that will receive a #13-delimited list of all
+  ///    positional parameters for which switch definitions don't exist.
+  ///  </summary>
   CLPPositionRestAttribute = class(TCustomAttribute)
   public
   end;
@@ -156,14 +157,14 @@ type
     constructor Create(const AErrInfo: TCLPErrorInfo);
   end;
 
-  ///	<summary>
-  ///	  Returns global parser instance. Not thread-safe.
-  ///	</summary>
+  ///  <summary>
+  ///    Returns global parser instance. Not thread-safe.
+  ///  </summary>
   function CommandLineParser: ICommandLineParser;
 
-  ///	<summary>
-  ///	  Create new command line parser instance. Thread-safe.
-  ///	</summary>
+  ///  <summary>
+  ///    Create new command line parser instance. Thread-safe.
+  ///  </summary>
   function CreateCommandLineParser: ICommandLineParser;
 
 implementation
@@ -219,6 +220,7 @@ type
     FProvided: Boolean;
     FShortLongForm: string;
     FSwitchType: TCLPSwitchType;
+    function GetRTTIProperty: TRttiProperty;
   strict protected
     function Quote(const AValue: string): string;
   public
@@ -420,18 +422,25 @@ end;
 
 procedure TSwitchData.Enable;
 var
-  LContext: TRttiContext;
   LProperty: TRttiProperty;
-  LRtttiType: TRttiType;
 begin
   if SwitchType <> stBoolean then
     raise Exception.Create('TSwitchData.Enable: Not supported');
 
-  LContext := TRttiContext.Create;
-  LRtttiType := LContext.GetType(FInstance.ClassType);
-  LProperty := LRtttiType.GetProperty(FPropertyName);
+  LProperty := GetRTTIProperty;
   LProperty.SetValue(FInstance, True);
   FProvided := True;
+end;
+
+function TSwitchData.GetRTTIProperty: TRttiProperty;
+var
+  LContext: TRttiContext;
+  LRtttiType: TRttiType;
+begin
+  LContext := TRttiContext.Create;
+  LRtttiType := LContext.GetType(FInstance.ClassType);
+
+  Result := LRtttiType.GetProperty(FPropertyName);
 end;
 
 function TSwitchData.GetValue: string;
@@ -440,10 +449,8 @@ var
   LProperty: TRttiProperty;
   LRtttiType: TRttiType;
 begin
-  LContext := TRttiContext.Create;
+  LProperty := GetRTTIProperty;
 
-  LRtttiType := LContext.GetType(FInstance.ClassType);
-  LProperty := LRtttiType.GetProperty(FPropertyName);
   Result := LProperty.GetValue(FInstance).AsString;
 end;
 
@@ -465,10 +472,7 @@ var
 begin
   Result := True;
 
-  LContext := TRttiContext.Create;
-
-  LRtttiType := LContext.GetType(FInstance.ClassType);
-  LProperty := LRtttiType.GetProperty(FPropertyName);
+  LProperty := GetRTTIProperty;
 
   case SwitchType of
     stString:
@@ -539,8 +543,8 @@ begin
   end;
 end;
 
-///	<summary>
-///	  Verifies attribute consistency.
+///  <summary>
+///    Verifies attribute consistency.
 ///
 ///   For positional attributes there must be no 'holes' (i.e. positional attributes must
 ///   be numbere 1,2,...N) and there must be no 'required' attributes after 'optional'
@@ -556,7 +560,7 @@ end;
 ///
 ///   At the same time creates an array of references to positional attributes,
 ///   FPositionals.
-///	</summary>
+///  </summary>
 function TCommandLineParser.CheckAttributes: Boolean;
 var
   LSwitchData: TSwitchData;
@@ -923,7 +927,7 @@ begin
     begin
       if not Assigned(LSwitchData) then
         if opIgnoreUnknownSwitches in FOptions then
-          continue //while
+          Continue //while
         else
           Exit(SetError(ekUnknownNamed, edUnknownSwitch, SUnknownSwitch, 0, Lel));
 
