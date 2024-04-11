@@ -445,9 +445,7 @@ end;
 
 function TSwitchData.GetValue: string;
 var
-  LContext: TRttiContext;
   LProperty: TRttiProperty;
-  LRtttiType: TRttiType;
 begin
   LProperty := GetRTTIProperty;
 
@@ -465,10 +463,8 @@ end;
 function TSwitchData.SetValue(const AValue: string): Boolean;
 var
   LCode: Integer;
-  LContext: TRttiContext;
   LIntegerValue: Integer;
   LProperty: TRttiProperty;
-  LRtttiType: TRttiType;
 begin
   Result := True;
 
