@@ -6,7 +6,7 @@
 interface
 
 uses
-  System.SysUtils, System.TypInfo, System.RTTI;
+  System.RTTI, System.SysUtils, System.TypInfo;
 
 type
   ///  <summary>
@@ -170,7 +170,7 @@ type
 implementation
 
 uses
-  System.StrUtils, System.Classes, System.Generics.Defaults, System.Generics.Collections;
+  System.Classes, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
 
 resourcestring
   SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept data.';
@@ -192,7 +192,7 @@ resourcestring
   SUnsupportedPropertyType          = 'Unsupported property %s type.';
 
 type
-  TCLPSwitchType = (stString, stInteger, stBoolean);
+  TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration);
 
   TCLPSwitchOption = (soRequired, soPositional, soPositionRest, soExtendable);
   TCLPSwitchOptions = set of TCLPSwitchOption;
@@ -220,7 +220,6 @@ type
     FProvided: Boolean;
     FShortLongForm: string;
     FSwitchType: TCLPSwitchType;
-    function GetRTTIProperty: TRttiProperty;
   strict protected
     function Quote(const AValue: string): string;
   public
@@ -422,32 +421,30 @@ end;
 
 procedure TSwitchData.Enable;
 var
+  LContext: TRttiContext;
+  LRtttiType: TRttiType;
   LProperty: TRttiProperty;
 begin
   if SwitchType <> stBoolean then
     raise Exception.Create('TSwitchData.Enable: Not supported');
 
-  LProperty := GetRTTIProperty;
+  LContext := TRttiContext.Create;
+  LRtttiType := LContext.GetType(FInstance.ClassType);
+  LProperty := LRtttiType.GetProperty(FPropertyName);
+
   LProperty.SetValue(FInstance, True);
   FProvided := True;
 end;
 
-function TSwitchData.GetRTTIProperty: TRttiProperty;
+function TSwitchData.GetValue: string;
 var
   LContext: TRttiContext;
   LRtttiType: TRttiType;
+  LProperty: TRttiProperty;
 begin
   LContext := TRttiContext.Create;
   LRtttiType := LContext.GetType(FInstance.ClassType);
-
-  Result := LRtttiType.GetProperty(FPropertyName);
-end;
-
-function TSwitchData.GetValue: string;
-var
-  LProperty: TRttiProperty;
-begin
-  LProperty := GetRTTIProperty;
+  LProperty := LRtttiType.GetProperty(FPropertyName);;
 
   Result := LProperty.GetValue(FInstance).AsString;
 end;
@@ -464,15 +461,18 @@ function TSwitchData.SetValue(const AValue: string): Boolean;
 var
   LCode: Integer;
   LIntegerValue: Integer;
+  LContext: TRttiContext;
+  LRtttiType: TRttiType;
   LProperty: TRttiProperty;
 begin
   Result := True;
 
-  LProperty := GetRTTIProperty;
+  LContext := TRttiContext.Create;
+  LRtttiType := LContext.GetType(FInstance.ClassType);
+  LProperty := LRtttiType.GetProperty(FPropertyName);
 
   case SwitchType of
-    stString:
-      LProperty.SetValue(FInstance, AValue);
+    stString: LProperty.SetValue(FInstance, AValue);
     stInteger:
       begin
         Val(AValue, LIntegerValue, LCode);
@@ -487,8 +487,20 @@ begin
         if TryStrToBool(AValue, Result) then
           LProperty.SetValue(FInstance, Result);
       end;
+    stEnumeration:
+      begin
+        var LEnumValue: Integer;
+
+        LEnumValue := GetEnumValue(LProperty.PropertyType.Handle, AValue);
+
+        if (LEnumValue <> -1) and LProperty.IsWritable then
+           LProperty.SetValue(FInstance, LEnumValue)
+        else
+          raise Exception.Create('TSwitchData.SetValue: Unsupported value "' + AValue.QuotedString('"') +
+            ' for ' + FPropertyName);
+      end
     else
-      raise Exception.Create('TSwitchData.SetValue: Not supported');
+      raise Exception.Create('TSwitchData.SetValue: Unknown or unsupported SwitchType: ' + Integer(SwitchType).ToString);
   end;
 
   FProvided := True;
@@ -808,7 +820,7 @@ begin
       if AProp.PropertyType.Handle = TypeInfo(Boolean) then
         Result := stBoolean
       else
-        raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
+        Result := stEnumeration;
     tkString, tkLString, tkWString, tkUString:
       Result := stString;
     else
