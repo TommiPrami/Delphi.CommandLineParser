@@ -299,7 +299,8 @@ type
     procedure AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
     function Wrap(const AName: string; const AData: TSwitchData): string;
     function LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
-    function GetCommandLinePrototype(const ASwitchList: TObjectList<TSwitchData>): string;
+    function GetCommandLinePrototype(const APositionalParams: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): string;
+    function GetPositionalSwitchName(const ASwitchData: TSwitchData): string;
   public
     procedure Usage(const AParser: TCommandLineParser; const AWrapAtColumn: Integer;
       var AUsageList: TArray<string>);
@@ -1094,7 +1095,7 @@ begin
   end;
 end;
 
-function TUsageFormatter.GetCommandLinePrototype(const ASwitchList: TObjectList<TSwitchData>): string;
+function TUsageFormatter.GetCommandLinePrototype(const APositionalParams: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): string;
 
   function GetName(const ASwitchData: TSwitchData): string;
   begin
@@ -1107,6 +1108,13 @@ function TUsageFormatter.GetCommandLinePrototype(const ASwitchList: TObjectList<
 var
   LSwitchData: TSwitchData;
 begin
+  for LSwitchData in APositionalParams do
+  begin
+    // TODO: Have not tested this, might not be too pretty
+    Result := Result + GetPositionalSwitchName(LSwitchData);
+    Result := Result + ' ';
+  end;
+
   for LSwitchData in ASwitchList do
   begin
     if not (soRequired in LSwitchData.Options) then
@@ -1122,6 +1130,16 @@ begin
 
     Result := Result + ' ';
   end;
+end;
+
+function TUsageFormatter.GetPositionalSwitchName(const ASwitchData: TSwitchData): string;
+begin
+  if ASwitchData.Name <> '' then
+    Result := ASwitchData.Name
+  else if Length(ASwitchData.LongNames) <> 0 then
+    Result := ASwitchData.LongNames[0].LongForm
+  else
+    Result := IntToStr(ASwitchData.Position);
 end;
 
 function TUsageFormatter.LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
@@ -1153,12 +1171,7 @@ begin
         LHelp.Add('*** missing ***')
       else
       begin
-        if LSwitchData.Name <> '' then
-          LName := LSwitchData.Name
-        else if Length(LSwitchData.LongNames) <> 0 then
-          LName := LSwitchData.LongNames[0].LongForm
-        else
-          LName := IntToStr(LSwitchData.Position);
+        LNAme := GetPositionalSwitchName(LSwitchData);
 
         LCommandLine := LCommandLine + ' ' + Wrap(LName, LSwitchData);
         LHelp.Add(Format('%s - %s', [Wrap(LName, LSwitchData), LSwitchData.Description]));
@@ -1205,8 +1218,7 @@ begin
       AlignAndWrap(LHelp, AWrapAtColumn);
 
     LHelp.Insert(0, LCommandLine);
-    // TODO; this should most likely take Positionals into account. Have not tested those at all.
-    LHelp.Insert(1, '  ' + GetCommandLinePrototype(AParser.SwitchList));
+    LHelp.Insert(1, '  ' + GetCommandLinePrototype(AParser.Positionals, AParser.SwitchList));
     LHelp.Insert(2, '');
 
     AUsageList := LHelp.ToStringArray;
