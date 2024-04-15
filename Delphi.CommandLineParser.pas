@@ -491,12 +491,14 @@ begin
       end;
     stEnumeration:
       begin
-        var LEnumValue: Integer;
-
-        LEnumValue := GetEnumValue(LProperty.PropertyType.Handle, AValue);
+        var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, AValue);
 
         if (LEnumValue <> -1) and LProperty.IsWritable then
-           LProperty.SetValue(FInstance, LEnumValue)
+        begin
+          var LValue := TValue.FromOrdinal(LProperty.PropertyType.Handle, LEnumValue);
+
+          LProperty.SetValue(FInstance, LValue)
+        end
         else
           raise Exception.Create('TSwitchData.SetValue: Unsupported value "' + AValue.QuotedString('"') +
             ' for ' + FPropertyName);
