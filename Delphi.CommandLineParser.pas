@@ -915,10 +915,10 @@ end;
 function TCommandLineParser.ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
 var
   LSwitchData: TSwitchData;
-  Lel: string;
-  LParam: string;
+  LCommandLine: string;
+  LCurrentRawParameter: string;
+  LParamValue: string; // -random:ThisParamValueToTheVariable
   LPosition: Integer;
-  Ls: string;
 begin
   Result := True;
 
@@ -927,50 +927,57 @@ begin
       LSwitchData.SetValue(LSwitchData.DefaultValue);
 
   LPosition := 1;
-  Ls := ACommandLine;
+  LCommandLine := ACommandLine;
 
-  while GrabNextElement(Ls, Lel) do
+  while GrabNextElement(LCommandLine, LCurrentRawParameter) do
   begin
-    if IsSwitch(Lel, LParam, LSwitchData) then
+    if IsSwitch(LCurrentRawParameter, LParamValue, LSwitchData) then
     begin
       if not Assigned(LSwitchData) then
         if opIgnoreUnknownSwitches in FOptions then
           Continue //while
         else
-          Exit(SetError(ekUnknownNamed, edUnknownSwitch, SUnknownSwitch, 0, Lel));
+          Exit(SetError(ekUnknownNamed, edUnknownSwitch, SUnknownSwitch, 0, LCurrentRawParameter));
 
       if LSwitchData.SwitchType = stBoolean then
       begin
-        if (LParam = '') or (soExtendable in LSwitchData.Options) then
+        if (LParamValue = '') or (soExtendable in LSwitchData.Options) then
         begin
           LSwitchData.Enable;
 
-          if LParam <> '' then
-            LSwitchData.ParamValue := LParam;
+          if LParamValue <> '' then
+            LSwitchData.ParamValue := LParamValue;
         end
         else
-          Exit(SetError(ekInvalidData, edBooleanWithData, SBooleanSwitchCannotAcceptData, 0, Lel));
+        begin
+          var BoolValue: Boolean;
+
+          if TryStrToBool(LParamValue, BoolValue) then
+            LSwitchData.SetValue(LParamValue)
+          else
+            Exit(SetError(ekInvalidData, edBooleanWithData, SBooleanSwitchCannotAcceptData, 0, LCurrentRawParameter));
+        end;
       end
-      else if LParam <> '' then
-        if not LSwitchData.SetValue(LParam) then
-          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, Lel));
+      else if LParamValue <> '' then
+        if not LSwitchData.SetValue(LParamValue) then
+          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, LCurrentRawParameter));
     end
     else
     begin
       if (LPosition - 1) > High(FPositionals) then
-        Exit(SetError(ekExtraPositional, edTooManyPositionalArguments, STooManyPositionalArguments, 0, Lel));
+        Exit(SetError(ekExtraPositional, edTooManyPositionalArguments, STooManyPositionalArguments, 0, LCurrentRawParameter));
 
       LSwitchData := FPositionals[LPosition - 1];
 
       if soPositionRest in LSwitchData.Options then
       begin
-        if not LSwitchData.AppendValue(Lel, #13, False) then
-          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, Lel));
+        if not LSwitchData.AppendValue(LCurrentRawParameter, #13, False) then
+          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, LCurrentRawParameter));
       end
       else
       begin
-        if not LSwitchData.SetValue(Lel) then
-          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, Lel));
+        if not LSwitchData.SetValue(LCurrentRawParameter) then
+          Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, LCurrentRawParameter));
 
         Inc(LPosition);
       end;
