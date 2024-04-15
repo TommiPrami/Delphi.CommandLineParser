@@ -1205,6 +1205,7 @@ begin
       AlignAndWrap(LHelp, AWrapAtColumn);
 
     LHelp.Insert(0, LCommandLine);
+    // TODO; this should most likely take Positionals into account. Have not tested those at all.
     LHelp.Insert(1, '  ' + GetCommandLinePrototype(AParser.SwitchList));
     LHelp.Insert(2, '');
 
