@@ -173,7 +173,7 @@ uses
   System.Classes, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
 
 resourcestring
-  SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept data.';
+  SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept data, that can''t be converted to Boolean value use True/False.';
   SDefault                          = ', default: ';
   SInvalidDataForSwitch             = 'Invalid data for switch.';
   SLongFormsDontMatch               = 'Short version of the long name must match beginning of the long name';
@@ -295,10 +295,11 @@ type
 
   TUsageFormatter = class
   private
-    function AddParameter(const AName, ADelim: string; const AData: TSwitchData): string;
+    function AddParameter(const AName, APrefix, ADelim: string; const AData: TSwitchData): string;
     procedure AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
     function Wrap(const AName: string; const AData: TSwitchData): string;
     function LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
+    function GetCommandLinePrototype(const ASwitchList: TObjectList<TSwitchData>): string;
   public
     procedure Usage(const AParser: TCommandLineParser; const AWrapAtColumn: Integer;
       var AUsageList: TArray<string>);
@@ -358,7 +359,7 @@ begin
 
   FDescription := ADescription;
 
-  if paramName <> '' then
+  if AParamName <> '' then
     FParamName := AParamName
   else
     FParamName := DefaultValue;
@@ -625,7 +626,7 @@ begin
 
   for LSwitchData in FSwitchList do
     if soPositional in LSwitchData.Options then
-      FPositionals[LSwitchData.Position-1] := LSwitchData;
+      FPositionals[LSwitchData.Position - 1] := LSwitchData;
 
   for LIndex := Low(FPositionals) to High(FPositionals) do
     if FPositionals[LIndex] = nil then
@@ -738,7 +739,7 @@ begin
     if LPosition <= 0 then //last element
       LPosition := Length(s) + 1;
 
-    el := Copy(s, 1, LPosition-1);
+    el := Copy(s, 1, LPosition - 1);
 
     Delete(s, 1, LPosition);
   end;
@@ -1039,17 +1040,12 @@ end;
 
 { TUsageFormatter }
 
-function TUsageFormatter.AddParameter(const AName, ADelim: string; const AData: TSwitchData): string;
+function TUsageFormatter.AddParameter(const AName, APrefix, ADelim: string; const AData: TSwitchData): string;
 begin
-  if AData.SwitchType = stBoolean then
-    Result := AName
-  else
-    Result := AName + ADelim + AData.ParamName;
+  Result := AName + ADelim + AData.ParamName;
 
-  if ADelim = '' then
-    Result := '-' + Result
-  else
-    Result := FSwitchDelims[0] + Result;
+  if not APrefix.IsEmpty then
+    Result := APrefix + Result;
 end;
 
 procedure TUsageFormatter.AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
@@ -1063,7 +1059,7 @@ begin
 
   for LStringValue in ASl do
   begin
-    LPosDel := Pos(' -', LStringValue);
+    LPosDel := Pos(' ' + FSwitchDelims[0], LStringValue);
 
     if LPosDel > LMaxPos then
       LMaxPos := LPosDel;
@@ -1074,7 +1070,7 @@ begin
   while LIndex < ASl.Count do
   begin
     LStringValue := ASl[LIndex];
-    LPosDel := Pos(' -', LStringValue);
+    LPosDel := Pos(' ' + FSwitchDelims[0], LStringValue);
 
     if (LPosDel > 0) and (LPosDel < LMaxPos) then
     begin
@@ -1089,12 +1085,42 @@ begin
       if LPosDel > 0 then
       begin
         ASl.Insert(LIndex + 1, StringOfChar(' ', LMaxPos + 2) + Copy(LStringValue, LPosDel + 1, Length(LStringValue) - LPosDel));
-        ASl[LIndex] := Copy(LStringValue, 1, LPosDel-1);
+        ASl[LIndex] := Copy(LStringValue, 1, LPosDel - 1);
         Inc(LIndex);
       end;
     end;
 
     Inc(LIndex);
+  end;
+end;
+
+function TUsageFormatter.GetCommandLinePrototype(const ASwitchList: TObjectList<TSwitchData>): string;
+
+  function GetName(const ASwitchData: TSwitchData): string;
+  begin
+    if (Length(ASwitchData.LongNames) >= 1) and not ASwitchData.LongNames[0].LongForm.IsEmpty then
+      Result := ASwitchData.LongNames[0].LongForm
+    else
+      Result := ASwitchData.PropertyName;
+  end;
+
+var
+  LSwitchData: TSwitchData;
+begin
+  for LSwitchData in ASwitchList do
+  begin
+    if not (soRequired in LSwitchData.Options) then
+      Result := Result + '[';
+
+    Result := Result + FSwitchDelims[0] + GetName(LSwitchData);
+
+    if not LSwitchData.ParamName.IsEmpty then
+      Result := Result + FParamDelims[0] + LSwitchData.ParamName;
+
+    if not (soRequired in LSwitchData.Options) then
+      Result := Result + ']';
+
+    Result := Result + ' ';
   end;
 end;
 
@@ -1154,11 +1180,11 @@ begin
         LName := '';
 
         if LSwitchData.Name <> '' then
-          LName := Wrap(AddParameter(LSwitchData.Name, '', LSwitchData), LSwitchData);
+          LName := Wrap(AddParameter(LSwitchData.Name, '-', '', LSwitchData), LSwitchData);
 
         for LLongName in LSwitchData.LongNames do
         begin
-          LName2 := Wrap(AddParameter(LLongName.LongForm, ':', LSwitchData), LSwitchData);
+          LName2 := Wrap(AddParameter(LLongName.LongForm, '-', ':', LSwitchData), LSwitchData);
 
           if LName <> '' then
             LName := LName + ', ';
@@ -1179,7 +1205,8 @@ begin
       AlignAndWrap(LHelp, AWrapAtColumn);
 
     LHelp.Insert(0, LCommandLine);
-    LHelp.Insert(1, '');
+    LHelp.Insert(1, '  ' + GetCommandLinePrototype(AParser.SwitchList));
+    LHelp.Insert(2, '');
 
     AUsageList := LHelp.ToStringArray;
   finally
