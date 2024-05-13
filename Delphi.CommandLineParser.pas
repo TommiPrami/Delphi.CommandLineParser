@@ -167,6 +167,12 @@ type
   ///  </summary>
   function CreateCommandLineParser: ICommandLineParser;
 
+  ///  <summary>
+  ///    Default usage/error console output formatter.
+  ///  </summary>
+  procedure DefaultUsageConsoleOutput(const AParser: ICommandLineParser);
+
+
 implementation
 
 uses
@@ -192,7 +198,7 @@ resourcestring
   SUnsupportedPropertyType          = 'Unsupported property %s type.';
 
 type
-  TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration);
+  TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration, stStringDynArray);
 
   TCLPSwitchOption = (soRequired, soPositional, soPositionRest, soExtendable);
   TCLPSwitchOptions = set of TCLPSwitchOption;
@@ -266,14 +272,14 @@ type
       const ALongNames: TCLPLongNames; const ASwitchType: TCLPSwitchType; const APosition: Integer;
       const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName: string);
     function CheckAttributes: Boolean;
-    function FindExtendableSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
+    function FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
     function GetCommandLine: string;
     function GetErrorInfo: TCLPErrorInfo; inline;
     function GetOptions: TCLPOptions;
     function GrabNextElement(var s, el: string): Boolean;
-    function IsSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
-    function MapPropertyType(const AProp: TRttiProperty): TCLPSwitchType;
-    procedure ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty);
+    function IsSwitch(const ASwitchRawValue: string; var AParam: string; var AData: TSwitchData): Boolean;
+    function MapPropertyType(const AProp: TRttiProperty; const APropertyRttiType: TRttiType): TCLPSwitchType;
+    procedure ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty; const APropertyRttiType: TRttiType);
     function ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
     procedure ProcessDefinitionClass(const ACommandData: TObject);
     function SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed; const AText: string;
@@ -308,6 +314,33 @@ type
 
 var
   GGpCommandLineParser: ICommandLineParser;
+
+procedure DefaultUsageConsoleOutput(const AParser: ICommandLineParser);
+var
+  LUsageLines: TArray<string>;
+  LLine: string;
+  LIndex: Integer;
+begin
+  LUsageLines := AParser.Usage;
+
+  WriteLn('Usage:');
+  WriteLn('  ' + LUsageLines[0]);
+
+  for LIndex := 1 to High(LUsageLines) do
+  begin
+    LLine := LUsageLines[LIndex];
+
+    WriteLn('    ' + LLine);
+  end;
+
+  var LError := AParser.ErrorInfo.Text;
+
+  if not LError.IsEmpty then
+  begin
+    WriteLn('');
+    WriteLn('    Error: ' + AParser.ErrorInfo.SwitchName.QuotedString('"') + ' - ' + AParser.ErrorInfo.Text.QuotedString('"'));
+  end;
+end;
 
 { exports }
 
@@ -491,18 +524,29 @@ begin
       end;
     stEnumeration:
       begin
-        var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, AValue);
-
-        if (LEnumValue <> -1) and LProperty.IsWritable then
+        if LProperty.IsWritable then
         begin
-          var LValue := TValue.FromOrdinal(LProperty.PropertyType.Handle, LEnumValue);
+          var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, AValue);
 
-          LProperty.SetValue(FInstance, LValue)
-        end
-        else
-          raise Exception.Create('TSwitchData.SetValue: Unsupported value "' + AValue.QuotedString('"') +
-            ' for ' + FPropertyName);
-      end
+          if LEnumValue <> -1 then
+          begin
+            var LValue := TValue.FromOrdinal(LProperty.PropertyType.Handle, LEnumValue);
+
+            LProperty.SetValue(FInstance, LValue)
+          end
+          else
+            raise Exception.Create('TSwitchData.SetValue: Unsupported value "' + AValue.QuotedString('"') +
+              ' for ' + FPropertyName);
+        end;
+      end;
+    stStringDynArray:
+      begin
+        var LStringArray := AValue.Split([',', ';']);
+
+        var LValue := TValue.From<TArray<string>>(LStringArray);
+
+        LProperty.SetValue(FInstance, LValue);
+      end;
     else
       raise Exception.Create('TSwitchData.SetValue: Unknown or unsupported SwitchType: ' + Integer(SwitchType).ToString);
   end;
@@ -646,7 +690,7 @@ begin
           Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, LLongName.LongForm));
 end;
 
-function TCommandLineParser.FindExtendableSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
+function TCommandLineParser.FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
 var
   kv: TPair<string, TSwitchData>;
 begin
@@ -654,10 +698,10 @@ begin
 
   for kv in FSwitchDict do
   begin
-    if AEl.StartsWith(kv.Key, True) then
+    if ASwitchName.StartsWith(kv.Key, True) then
     begin
       AData := kv.Value;
-      AParam := AEl;
+      AParam := ASwitchName;
       Delete(AParam, 1, Length(kv.Key));
 
       Exit(True);
@@ -750,27 +794,27 @@ begin
   Result := True;
 end; { TCommandLineParser.GrabNextElement }
 
-function TCommandLineParser.IsSwitch(const AEl: string; var AParam: string; var AData: TSwitchData): Boolean;
+function TCommandLineParser.IsSwitch(const ASwitchRawValue: string; var AParam: string; var AData: TSwitchData): Boolean;
 var
   LDelimPos: Integer;
   LMinPos: Integer;
   LName: string;
   LPd: Char;
   LSd: string;
-  LTrimEl: string;
+  LSwitchRawValue: string;
 begin
   Result := False;
   AParam := '';
 
-  LTrimEl := AEl;
+  LSwitchRawValue := ASwitchRawValue;
   for LSd in FSwitchDelims do
-    if StartsStr(LSd, LTrimEl) then
+    if StartsStr(LSd, LSwitchRawValue) then
     begin
-      LTrimEl := AEl;
+      LSwitchRawValue := ASwitchRawValue;
 
-      Delete(LTrimEl, 1, Length(LSd));
+      Delete(LSwitchRawValue, 1, Length(LSd));
 
-      if LTrimEl <> '' then
+      if LSwitchRawValue <> '' then
         Result := True;
 
       Break;
@@ -778,7 +822,7 @@ begin
 
   if Result then //try to extract parameter data
   begin
-    LName := LTrimEl;
+    LName := LSwitchRawValue;
     LMinPos := 0;
 
     for LPd in FParamDelims do
@@ -803,9 +847,9 @@ begin
 
     if not Assigned(AData) then //try short name
     begin
-      if FSwitchDict.TryGetValue(LTrimEl[1], AData) then
+      if FSwitchDict.TryGetValue(LSwitchRawValue[1], AData) then
       begin
-        AParam := LTrimEl;
+        AParam := LSwitchRawValue;
         Delete(AParam, 1, 1);
 
         if (AParam <> '') and (AData.SwitchType = stBoolean) then //misdetection, Boolean switch cannot accept data
@@ -815,7 +859,15 @@ begin
   end;
 end;
 
-function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty): TCLPSwitchType;
+function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty; const APropertyRttiType: TRttiType): TCLPSwitchType;
+
+  procedure RaiseUnsuppoortedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType);
+  begin
+    AResult := stString; // Just something to get rid of COmpiler warnign
+
+    raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
+  end;
+
 begin
   case AProp.PropertyType.TypeKind of
     tkInteger, tkInt64:
@@ -827,8 +879,15 @@ begin
         Result := stEnumeration;
     tkString, tkLString, tkWString, tkUString:
       Result := stString;
+    tkDynArray:
+      begin
+        if APropertyRttiType.TypeKind = tkChar then
+          Result := stStringDynArray
+        else
+          RaiseUnsuppoortedPropertyType(AProp, Result);
+      end
     else
-      raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
+      RaiseUnsuppoortedPropertyType(AProp, Result);
   end;
 end;
 
@@ -853,7 +912,8 @@ begin
   Result := Parse(GetCommandLine, ACommandData);
 end;
 
-procedure TCommandLineParser.ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty);
+procedure TCommandLineParser.ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty;
+  const APropertyRttiType: TRttiType);
 
   procedure AddLongName(const ALongForm, AShortForm: string; var ALongNames: TCLPLongNames);
   begin
@@ -912,7 +972,7 @@ begin
   if (Length(LLongNames) = 0) and (not SameText(AProp.Name, Trim(LNName))) then
     AddLongName(AProp.Name, '', LLongNames);
 
-  AddSwitch(AInstance, AProp.Name, Trim(LNName), LLongNames, MapPropertyType(AProp), LPosition,
+  AddSwitch(AInstance, AProp.Name, Trim(LNName), LLongNames, MapPropertyType(AProp, APropertyRttiType), LPosition,
     LOptions, LDefault, Trim(LDescription), Trim(LParamName));
 end;
 
@@ -1008,7 +1068,7 @@ begin
 
   for LProperty in LRttiType.GetProperties do
     if LProperty.Parent = LRttiType then
-      ProcessAttributes(ACommandData, LProperty);
+      ProcessAttributes(ACommandData, LProperty, LContext.GetType(LProperty.Handle));
 end;
 
 function TCommandLineParser.SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed;
