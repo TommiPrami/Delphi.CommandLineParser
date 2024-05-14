@@ -74,6 +74,20 @@ type
   public
   end;
 
+  ///  <summary>
+  ///    When present, adds string parameter check that file must exist.
+  ///  </summary>
+  CLPFileMustExistAttribute = class(TCustomAttribute)
+  public
+  end;
+
+  ///  <summary>
+  ///    When present, adds string parameter check that file must exist.
+  ///  </summary>
+  CLPDirectoryMustExistAttribute = class(TCustomAttribute)
+  public
+  end;
+
   /// <summary>
   ///   When present, specifies that the switch name can be arbitrarily extended.
   ///   The code can access this extension via GetExtension function.
@@ -106,7 +120,8 @@ type
     //configuration error, will result in exception
     ekPositionalsBadlyDefined, ekNameNotDefined, ekShortNameTooLong, ekLongFormsDontMatch,
     //user data error, will result in error result
-    ekMissingPositional, ekExtraPositional, ekMissingNamed, ekUnknownNamed, ekInvalidData);
+    ekMissingPositional, ekExtraPositional, ekMissingNamed, ekUnknownNamed, ekInvalidData,
+    ekWronDataTypeForFileOrDirectoryMustExist, ekFileDoNotExist, ekDirectoryDoNotExist);
 
   TCLPErrorDetailed = (
     edBooleanWithData,             // SBooleanSwitchCannotAcceptData
@@ -123,7 +138,10 @@ type
     edTooManyPositionalArguments,  // STooManyPositionalArguments
     edUnknownSwitch,               // SUnknownSwitch
     edUnsupportedPropertyType,     // SUnsupportedPropertyType
-    edMissingRequiredParameter     // SRequiredParameterWasNotProvided
+    edMissingRequiredParameter,    // SRequiredParameterWasNotProvided
+    edWrongDataTypeForFileOrDirectoryMustExist, // sWrongDataTypeForFileOrDirectoryMustExist
+    edFileDoNotExist,              // SFileDoNotExist
+    edDirectoryDoNotExist          // SDirectoryDoNotExist
   );
 
   TCLPErrorInfo = record
@@ -196,11 +214,15 @@ resourcestring
   STypeOfACLPPositionRestPropertyMu = 'Type of a CLPPositionRest property must be string.';
   SUnknownSwitch                    = 'Unknown switch.';
   SUnsupportedPropertyType          = 'Unsupported property %s type.';
+  SWrongDataTypeForFileOrDirectoryMustExist = 'Switch Datatype for file or directory check musht be string.';
+  SFileDoNotExist                   = 'File must exist';
+  SDirectoryDoNotExist              = 'Directory must exist';
 
 type
   TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration, stStringDynArray);
 
-  TCLPSwitchOption = (soRequired, soPositional, soPositionRest, soExtendable);
+  TCLPSwitchOption = (soUnknown, soRequired, soPositional, soPositionRest, soExtendable,
+    soFileMustExist, soDirectoryMustExist);
   TCLPSwitchOptions = set of TCLPSwitchOption;
 
   TCLPLongName = record
@@ -235,6 +257,7 @@ type
     function AppendValue(const AValue, ADelim: string; const ADoQuote: Boolean): Boolean;
     procedure Enable;
     function GetValue: string;
+    function GetValueOrDefault: string;
     function SetValue(const AValue: string): Boolean;
     property DefaultValue: string read FDefaultValue;
     property Description: string read FDescription;
@@ -280,6 +303,7 @@ type
     function IsSwitch(const ASwitchRawValue: string; var AParam: string; var AData: TSwitchData): Boolean;
     function MapPropertyType(const AProp: TRttiProperty; const APropertyRttiType: TRttiType): TCLPSwitchType;
     procedure ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty; const APropertyRttiType: TRttiType);
+    function FileSystemCheck(const ASwitchData: TSwitchData): TCLPSwitchOption;
     function ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
     procedure ProcessDefinitionClass(const ACommandData: TObject);
     function SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed; const AText: string;
@@ -340,6 +364,11 @@ begin
     WriteLn('');
     WriteLn('    Error: ' + AParser.ErrorInfo.SwitchName.QuotedString('"') + ' - ' + AParser.ErrorInfo.Text.QuotedString('"'));
   end;
+end;
+
+function SplitArray(const AStringValue: string): TArray<string>;
+begin
+  Result := AStringValue.Split([',', ';']);
 end;
 
 { exports }
@@ -484,6 +513,14 @@ begin
   Result := LProperty.GetValue(FInstance).AsString;
 end;
 
+function TSwitchData.GetValueOrDefault: string;
+begin
+  Result := GetValue;
+
+  if Result.IsEmpty then
+    Result := DefaultValue;
+end;
+
 function TSwitchData.Quote(const AValue: string): string;
 begin
   if (Pos(' ', AValue) > 0) or (Pos('"', AValue) > 0) then
@@ -541,7 +578,7 @@ begin
       end;
     stStringDynArray:
       begin
-        var LStringArray := AValue.Split([',', ';']);
+        var LStringArray := SplitArray(AValue);
 
         var LValue := TValue.From<TArray<string>>(LStringArray);
 
@@ -688,6 +725,30 @@ begin
       else for LLongName in LSwitchData.LongNames do
         if (LLongName.ShortForm <> '') and (not StartsText(LLongName.ShortForm, LLongName.LongForm)) then
           Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, LLongName.LongForm));
+end;
+
+function TCommandLineParser.FileSystemCheck(const ASwitchData: TSwitchData): TCLPSwitchOption;
+var
+  LStringValue: string;
+  LStringArray: TArray<string>;
+begin
+  Result := soUnknown;
+
+  LStringValue := ASwitchData.GetValueOrDefault;
+  LStringArray := SplitArray(LStringValue);
+
+  if soFileMustExist in ASwitchData.Options then
+  begin
+    for var LFileName in LStringArray do
+      if not FileExists(LFileName) then
+        Exit(soFileMustExist);
+  end
+  else if soDirectoryMustExist in ASwitchData.Options then
+  begin
+    for var LDirectory in LStringArray do
+      if not DirectoryExists(LDirectory) then
+        Exit(soDirectoryMustExist);
+  end;
 end;
 
 function TCommandLineParser.FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
@@ -955,6 +1016,10 @@ begin
     end
     else if LAttribute is CLPRequiredAttribute then
       Include(LOptions, soRequired)
+    else if LAttribute is CLPFileMustExistAttribute then
+      Include(LOptions, soFileMustExist)
+    else if LAttribute is CLPDirectoryMustExistAttribute then
+      Include(LOptions, soDirectoryMustExist)
     else if LAttribute is CLPExtendableAttribute then
       Include(LOptions, soExtendable)
     else if LAttribute is CLPPositionAttribute then
@@ -1049,12 +1114,40 @@ begin
   end; //while s <> ''
 
   for LSwitchData in FPositionals do
+  begin
     if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
-      Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+      Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, LSwitchData.Position, LSwitchData.LongNames[0].LongForm))
+    else if (soFileMustExist in LSwitchData.Options) or (soDirectoryMustExist in LSwitchData.Options) then
+    begin
+      if LSwitchData.SwitchType in [stString, stStringDynArray] then
+      begin
+        case FileSystemCheck(LSwitchData) of
+          soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+          soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+        end;
+      end
+      else
+        Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist, SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+    end;
+  end;
 
   for LSwitchData in FSwitchlist do
+  begin
     if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
-      Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, LSwitchData.LongNames[0].LongForm));
+      Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, LSwitchData.LongNames[0].LongForm))
+    else if (soFileMustExist in LSwitchData.Options) or (soDirectoryMustExist in LSwitchData.Options) then
+    begin
+      if LSwitchData.SwitchType in [stString, stStringDynArray] then
+      begin
+        case FileSystemCheck(LSwitchData) of
+          soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+          soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+        end;
+      end
+      else
+        Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist, SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+    end;
+  end;
 end;
 
 procedure TCommandLineParser.ProcessDefinitionClass(const ACommandData: TObject);
