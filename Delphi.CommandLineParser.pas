@@ -510,7 +510,28 @@ begin
   LRtttiType := LContext.GetType(FInstance.ClassType);
   LProperty := LRtttiType.GetProperty(FPropertyName);;
 
-  Result := LProperty.GetValue(FInstance).AsString;
+  if SwitchType = stEnumeration then
+  begin
+    // TODO: Untested
+    var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, FPropertyName);
+
+    if LEnumValue <> -1 then
+    begin
+      var LValue := TValue.FromOrdinal(LProperty.PropertyType.Handle, LEnumValue);
+
+      Result := LProperty.GetValue(FInstance).AsString
+    end
+    else
+      Result := '';
+  end
+  else if SwitchType = stStringDynArray then
+  begin
+    var LArray: TArray<string> := LProperty.GetValue(FInstance).AsType<TArray<string>>;
+
+    Result := Result.Join(';', LArray);
+  end
+  else
+    Result := LProperty.GetValue(FInstance).AsString;
 end;
 
 function TSwitchData.GetValueOrDefault: string;
