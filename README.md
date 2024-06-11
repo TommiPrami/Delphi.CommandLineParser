@@ -10,6 +10,8 @@ Chages to original: https://github.com/gabr42/GpDelphiUnits - GpCommandLineParse
   - Added possibility to have default as true boolean parameter, and ability to make it false:
     - -BoolParam:False (1/0, true/false, t/f should be supported)
   - Default parameter stwiths in windows is "-" (not "/" character)
+  - Added support for Enums
+  - Added support for TArray<string>
   - Some comments that **I** think that are not needed, like version history, are removed, and some are moved to this readme.md etc...
 
 example parameter configuration
