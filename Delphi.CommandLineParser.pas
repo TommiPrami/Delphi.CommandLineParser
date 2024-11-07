@@ -9,6 +9,8 @@ uses
   System.RTTI, System.SysUtils, System.TypInfo;
 
 type
+  // TODO: add Skip (etc) attribute, to parser just skip the prpperty all to gether, so there could be properties that are helpers fopr App but they are not (never ever) coming from the command line
+
   ///  <summary>
   ///    Specifies short (one letter) name for the switch.
   ///  </summary>
@@ -1284,6 +1286,8 @@ function TUsageFormatter.GetCommandLinePrototype(const APositionalParams: TArray
 var
   LSwitchData: TSwitchData;
 begin
+  Result := '';
+
   for LSwitchData in APositionalParams do
   begin
     // TODO: Have not tested this, might not be too pretty
