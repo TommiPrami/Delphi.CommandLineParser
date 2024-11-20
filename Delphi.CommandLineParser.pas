@@ -192,11 +192,10 @@ type
   ///  </summary>
   procedure DefaultUsageConsoleOutput(const AParser: ICommandLineParser);
 
-
 implementation
 
 uses
-  System.Classes, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
+  System.Classes, System.Character, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
 
 resourcestring
   SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept data, that can''t be converted to Boolean value use True/False.';
@@ -221,6 +220,13 @@ resourcestring
   SDirectoryDoNotExist              = 'Directory must exist';
 
 type
+  // Usage: LEnumNameStr := TEnumConverter.EnumToString(FormMain.BorderStyle);
+  TEnumConverter = class
+  public
+    class function EnumToInt<T>(const AEnumValue: T): Integer;
+    class function EnumToString<T>(const AEnumValue: T; const AStripLowercasePrefix: Boolean = False): string;
+  end;
+
   TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration, stStringDynArray);
 
   TCLPSwitchOption = (soUnknown, soRequired, soPositional, soPositionRest, soExtendable,
@@ -340,6 +346,35 @@ type
 
 var
   GGpCommandLineParser: ICommandLineParser;
+
+class function TEnumConverter.EnumToInt<T>(const AEnumValue: T): Integer;
+begin
+  Result := 0;
+
+  Move(AEnumValue, Result, SizeOf(AEnumValue));
+end;
+
+class function TEnumConverter.EnumToString<T>(const AEnumValue: T; const AStripLowercasePrefix: Boolean = False): string;
+begin
+  Result := GetEnumName(TypeInfo(T), EnumToInt(AEnumValue));
+
+  if AStripLowercasePrefix and not Result.IsEmpty then
+  begin
+    var LIndex: Integer := 0;
+    var LResultLength := Length(Result);
+
+    while LIndex <= LResultLength do
+    begin
+      Inc(LIndex);
+
+      if not Result[LIndex].IsLower then
+        Break;
+    end;
+
+    Result := Copy(Result, LIndex, LResultLength);
+  end;
+end;
+
 
 procedure DefaultUsageConsoleOutput(const AParser: ICommandLineParser);
 var
@@ -608,7 +643,7 @@ begin
         LProperty.SetValue(FInstance, LValue);
       end;
     else
-      raise Exception.Create('TSwitchData.SetValue: Unknown or unsupported SwitchType: ' + Integer(SwitchType).ToString);
+      raise Exception.Create('TSwitchData.SetValue: Unknown or unsupported SwitchType: ' + TEnumConverter.EnumToString(SwitchType));
   end;
 
   FProvided := True;
