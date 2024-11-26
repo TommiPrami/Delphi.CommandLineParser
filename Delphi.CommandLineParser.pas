@@ -192,6 +192,8 @@ type
   ///  </summary>
   procedure DefaultUsageConsoleOutput(const AParser: ICommandLineParser);
 
+  procedure FreeCommandLineParser;
+
 implementation
 
 uses
@@ -345,7 +347,7 @@ type
   end;
 
 var
-  GGpCommandLineParser: ICommandLineParser;
+  GCommandLineParser: ICommandLineParser;
 
 class function TEnumConverter.EnumToInt<T>(const AEnumValue: T): Integer;
 begin
@@ -412,15 +414,20 @@ end;
 
 function CommandLineParser: ICommandLineParser;
 begin
-  if not Assigned(GGpCommandLineParser) then
-    GGpCommandLineParser := CreateCommandLineParser;
+  if not Assigned(GCommandLineParser) then
+    GCommandLineParser := CreateCommandLineParser;
 
-  Result := GGpCommandLineParser;
+  Result := GCommandLineParser;
 end;
 
 function CreateCommandLineParser: ICommandLineParser;
 begin
   Result := TCommandLineParser.Create;
+end;
+
+procedure FreeCommandLineParser;
+begin
+  GCommandLineParser := nil;
 end;
 
 { CLPNameAttribute }
