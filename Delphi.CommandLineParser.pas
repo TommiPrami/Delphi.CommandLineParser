@@ -9,7 +9,13 @@ uses
   System.RTTI, System.SysUtils, System.TypInfo;
 
 type
-  // TODO: add Skip (etc) attribute, to parser just skip the prpperty all to gether, so there could be properties that are helpers fopr App but they are not (never ever) coming from the command line
+  { TODO: add Skip (etc) attribute, to parser just skip the prpperty all to gether, so there could be properties that
+          are helpers fopr App but they are not (never ever) coming from the command line }
+  { TODO: Make list delimitter configurable, now hard coded ',' and ";" (To write given and parse also...)}
+  { TODO: Add supoort for TStrings list parameter. }
+  { TODO: List items with spaces not workkinf -ArrayItem:"item 1";"Item 2" or  -ArrayItem:"item 1;Item 2"
+         and check are both formats valid at first place, unit tests are there, will get parced as
+         positional parameters, even should not.}
 
   ///  <summary>
   ///    Specifies short (one letter) name for the switch.
@@ -200,7 +206,7 @@ uses
   System.Classes, System.Character, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
 
 resourcestring
-  SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept data, that can''t be converted to Boolean value use True/False.';
+  SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept random data, that can''t be converted to Boolean value use True/False.';
   SDefault                          = ', default: ';
   SInvalidDataForSwitch             = 'Invalid data for switch.';
   SLongFormsDontMatch               = 'Short version of the long name must match beginning of the long name';
@@ -644,7 +650,6 @@ begin
     stStringDynArray:
       begin
         var LStringArray := SplitArray(AValue);
-
         var LValue := TValue.From<TArray<string>>(LStringArray);
 
         LProperty.SetValue(FInstance, LValue);
@@ -989,7 +994,7 @@ function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty; const AP
 
   procedure RaiseUnsuppoortedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType);
   begin
-    AResult := stString; // Just something to get rid of COmpiler warnign
+    AResult := stString; // Just something to get rid of Compiler warning
 
     raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
   end;
