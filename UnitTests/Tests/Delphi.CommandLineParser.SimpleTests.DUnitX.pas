@@ -1,4 +1,4 @@
-﻿unit Delphi.CommandLineParser.DunitX;
+﻿unit Delphi.CommandLineParser.SimpleTests.DUnitX;
 
 interface
 

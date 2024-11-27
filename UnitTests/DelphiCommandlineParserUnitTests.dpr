@@ -9,19 +9,18 @@
 
 uses
   FastMM5,
-{$IFDEF CHECK_MEMORY_LEAKS}
+  {$IFDEF CHECK_MEMORY_LEAKS}
   DUnitX.MemoryLeakMonitor.FastMM5,
-{$ENDIF}
+  {$ENDIF }
   System.SysUtils,
   {$IFDEF TESTINSIGHT}
   TestInsight.DUnitX,
   {$ELSE}
   DUnitX.Loggers.Console,
-  DUnitX.Loggers.Xml.NUnit,
   {$ENDIF }
   DUnitX.TestFramework,
   Delphi.CommandLineParser in '..\Delphi.CommandLineParser.pas',
-  Delphi.CommandLineParser.DUnitX in 'Tests\Delphi.CommandLineParser.DUnitX.pas';
+  Delphi.CommandLineParser.SimpleTests.DUnitX in 'Tests\Delphi.CommandLineParser.SimpleTests.DUnitX.pas';
 
 { keep comment here to protect the following conditional from being removed by the IDE when adding a unit }
 {$IFNDEF TESTINSIGHT}

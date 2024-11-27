@@ -95,7 +95,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="..\Delphi.CommandLineParser.pas"/>
-        <DCCReference Include="Tests\Delphi.CommandLineParser.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.SimpleTests.DUnitX.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
