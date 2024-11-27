@@ -7,7 +7,7 @@ uses
 
 type
   [TestFixture]
-  TCommandLineParserDUnitX = class(TObject)
+  TCommandLineParserSimpleTestsDUnitX = class(TObject)
   public
     [Test]
     procedure CreateAndFreeTest;
@@ -61,9 +61,9 @@ type
 
 implementation
 
-{ TCommandLineParserDUnitX }
+{ TCommandLineParserSimpleTestsDUnitX }
 
-procedure TCommandLineParserDUnitX.CreateAndFreeTest;
+procedure TCommandLineParserSimpleTestsDUnitX.CreateAndFreeTest;
 begin
   var LCommandLineParser := CreateCommandLineParser;
   try
@@ -76,7 +76,7 @@ begin
   Assert.Pass('If no exceptions, all should be OK');
 end;
 
-procedure TCommandLineParserDUnitX.SimpleDefaultTest;
+procedure TCommandLineParserSimpleTestsDUnitX.SimpleDefaultTest;
 begin
   var LCommandLineParser := CreateCommandLineParser;
   var LOptions := TSimpleCommandLine.Create;
@@ -93,7 +93,7 @@ begin
   end;
 end;
 
-procedure TCommandLineParserDUnitX.SimpleNonDefaultTest;
+procedure TCommandLineParserSimpleTestsDUnitX.SimpleNonDefaultTest;
 const
   STRING_VALUE = 'SomeStringValueThatHasNoSpaces';
 begin
@@ -112,7 +112,7 @@ begin
   end;
 end;
 
-procedure TCommandLineParserDUnitX.SimpleNonDefaultEqualSeparatorTest;
+procedure TCommandLineParserSimpleTestsDUnitX.SimpleNonDefaultEqualSeparatorTest;
 const
   STRING_VALUE = 'SomeStringValueThatHasNoSpaces';
 begin
@@ -131,7 +131,7 @@ begin
   end;
 end;
 
-procedure TCommandLineParserDUnitX.SimpleReguiredNoDefaultTest;
+procedure TCommandLineParserSimpleTestsDUnitX.SimpleReguiredNoDefaultTest;
 begin
   var LCommandLineParser := CreateCommandLineParser;
   var LOptions := TRequiredCommandLine.Create;
@@ -156,6 +156,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TCommandLineParserDUnitX);
+  TDUnitX.RegisterTestFixture(TCommandLineParserSimpleTestsDUnitX);
 
 end.
