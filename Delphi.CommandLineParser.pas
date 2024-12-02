@@ -11,11 +11,13 @@ uses
 type
   { TODO: add Skip (etc) attribute, to parser just skip the prpperty all to gether, so there could be properties that
           are helpers fopr App but they are not (never ever) coming from the command line }
-  { TODO: Make list delimitter configurable, now hard coded ',' and ";" (To write given and parse also...)}
+  { TODO: Make list delimitter configurable, now hard coded ',' and ";" (To write given and parse also...) }
   { TODO: Add supoort for TStrings list parameter. }
   { TODO: List items with spaces not workkinf -ArrayItem:"item 1";"Item 2" or  -ArrayItem:"item 1;Item 2"
          and check are both formats valid at first place, unit tests are there, will get parced as
-         positional parameters, even should not.}
+         positional parameters, even should not. }
+  { TODO: Add support for Single type properties and parameters }
+  { TODO: Add support for Double type properties and parameters }
 
   ///  <summary>
   ///    Specifies short (one letter) name for the switch.
