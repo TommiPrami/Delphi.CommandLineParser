@@ -40,6 +40,7 @@ type
     // FDoubleParameter: Double;
     // FDateParameter: TDate;
     // FTimeParameter: TTime;
+    // FDateTimeParameter: TDateTime;
   public
     [CLPLongName('StringParameter'), CLPDescription('String parameter', '<string>'), CLPDefault('default')]
     property StringParameter: string read FStringParameter write FStringParameter;
