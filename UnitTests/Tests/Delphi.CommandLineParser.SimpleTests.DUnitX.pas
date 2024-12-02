@@ -35,6 +35,9 @@ type
     FStringParameter: string;
     FIntegerParameter: Integer;
     FEnumParameter: TEnumForParametrer;
+    FBooleanParameter: Boolean;
+    // FSingleParameter: Single;
+    // FDoubleParameter: Double;
   public
     [CLPLongName('StringParameter'), CLPDescription('String parameter', '<string>'), CLPDefault('default')]
     property StringParameter: string read FStringParameter write FStringParameter;
@@ -44,6 +47,15 @@ type
 
     [CLPLongName('EnumParameter'), CLPDescription('Enum parameter', '<Enum1, Enum2, Enum3>'), CLPDefault('Enum3')]
     property EnumParameter: TEnumForParametrer read FEnumParameter write FEnumParameter;
+
+    [CLPLongName('BooleanParameter'), CLPDescription('Boolean parameter', '<True/False>')]
+    property BooleanParameter: Boolean read FBooleanParameter write FBooleanParameter;
+
+    // [CLPLongName('SingleParameter'), CLPDescription('Single parameter', '<Float>')]
+    // property SingleParameter: Single read FSingleParameter write FSingleParameter;
+
+    //[CLPLongName('DoubleParameter'), CLPDescription('Double parameter', '<Float>')]
+    // property DoubleParameter: Double read FDoubleParameter write FDoubleParameter;
   end;
 
   TRequiredCommandLine = class(TObject)
@@ -96,15 +108,21 @@ begin
 end;
 
 procedure TCommandLineParserSimpleTestsDUnitX.SimpleDefaultTest;
+var
+  LCommandLineParser: ICommandLineParser;
+  LOptions: TSimpleCommandLine;
 begin
-  var LCommandLineParser := CreateCommandLineParser;
-  var LOptions := TSimpleCommandLine.Create;
+  LCommandLineParser := CreateCommandLineParser;
+  LOptions := TSimpleCommandLine.Create;
   try
     Assert.IsTrue(LCommandLineParser.Parse('', LOptions), 'Parse command line returned False');
 
     Assert.AreEqual('default', LOptions.StringParameter, 'Default string parameter has wrong value');
     Assert.AreEqual(1, LOptions.IntegerParameter, 'Default Integer parameter has wrong value');
     Assert.AreEqual(Integer(Enum3), Integer(LOptions.EnumParameter), 'Default Enum parameter has wrong value');
+    Assert.IsFalse(LOptions.BooleanParameter, 'Default BooleanParameter should be False, got True');
+    // Assert.AreEqual(0.00, LOptions.SingleParameter, 0.00, 'Default Single parameter should be 0.00');
+    // Assert.AreEqual(0.00, LOptions.DoubleParameter, 0.00, 'Default Double parameter should be 0.00');
   finally
     LOptions.Free;
     LCommandLineParser := nil;
@@ -115,15 +133,43 @@ end;
 procedure TCommandLineParserSimpleTestsDUnitX.SimpleNonDefaultTest;
 const
   STRING_VALUE = 'SomeStringValueThatHasNoSpaces';
+var
+  LCommandLineParser: ICommandLineParser;
+  LOptions: TSimpleCommandLine;
 begin
-  var LCommandLineParser := CreateCommandLineParser;
-  var LOptions := TSimpleCommandLine.Create;
+  LCommandLineParser := CreateCommandLineParser;
+  LOptions := TSimpleCommandLine.Create;
   try
-    Assert.IsTrue(LCommandLineParser.Parse('-StringParameter:' + STRING_VALUE + ' -IntegerParameter:666 -EnumParameter:Enum2', LOptions), 'Parse command line returned False');
+    Assert.IsTrue(LCommandLineParser.Parse('-StringParameter:' + STRING_VALUE + ' -IntegerParameter:666 -EnumParameter:Enum2 -BooleanParameter', LOptions), 'Parse command line returned False');
 
     Assert.AreEqual(STRING_VALUE, LOptions.StringParameter, 'Default string parameter has wrong value');
     Assert.AreEqual(666, LOptions.IntegerParameter, 'Default Integer parameter has wrong value');
     Assert.AreEqual(Integer(Enum2), Integer(LOptions.EnumParameter), 'Default Enum parameter has wrong value');
+    Assert.IsTrue(LOptions.BooleanParameter, 'BooleanParameter should be True, got False');
+    // Assert.AreEqual(0.00, LOptions.SingleParameter, 0.00, 'Default Single parameter should be 0.00');
+    // Assert.AreEqual(0.00, LOptions.DoubleParameter, 0.00, 'Default Double parameter should be 0.00');
+  finally
+    LOptions.Free;
+    LCommandLineParser := nil;
+    FreeCommandLineParser;
+  end;
+
+  LCommandLineParser := CreateCommandLineParser;
+  LOptions := TSimpleCommandLine.Create;
+  try
+    Assert.IsTrue(LCommandLineParser.Parse('-BooleanParameter:False', LOptions), 'Parse command line returned False');
+    Assert.IsFalse(LOptions.BooleanParameter, 'BooleanParameter should be False, got True');
+  finally
+    LOptions.Free;
+    LCommandLineParser := nil;
+    FreeCommandLineParser;
+  end;
+
+  LCommandLineParser := CreateCommandLineParser;
+  LOptions := TSimpleCommandLine.Create;
+  try
+    Assert.IsTrue(LCommandLineParser.Parse('-BooleanParameter:True', LOptions), 'Parse command line returned False');
+    Assert.IsTrue(LOptions.BooleanParameter, 'BooleanParameter should be True, got False');
   finally
     LOptions.Free;
     LCommandLineParser := nil;
