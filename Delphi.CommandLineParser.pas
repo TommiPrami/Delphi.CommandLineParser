@@ -295,11 +295,13 @@ type
 
 const
   {$IFDEF MSWINDOWS}
-    FSwitchDelims: array [0..2] of string = ('-', '/', '--');
+    FSwitchDelimiters: array [0..2] of string = ('-', '/', '--');
   {$ELSE}
-    FSwitchDelims: array [0..1] of string = ('--', '-');
+    FSwitchDelimiters: array [0..1] of string = ('--', '-');
   {$ENDIF}
-    FParamDelims : array [0..1] of Char = (':', '=');
+    FParameterDelimiters: array [0..1] of Char = (':', '=');
+    FListDelimiters: array [0..1] of Char = (',', ';');
+
 
 type
   TCommandLineParser = class(TInterfacedObject, ICommandLineParser)
@@ -417,7 +419,7 @@ end;
 
 function SplitArray(const AStringValue: string): TArray<string>;
 begin
-  Result := AStringValue.Split([',', ';']);
+  Result := AStringValue.Split(FListDelimiters);
 end;
 
 { exports }
@@ -942,7 +944,8 @@ begin
   AParam := '';
 
   LSwitchRawValue := ASwitchRawValue;
-  for LSd in FSwitchDelims do
+
+  for LSd in FSwitchDelimiters do
     if StartsStr(LSd, LSwitchRawValue) then
     begin
       LSwitchRawValue := ASwitchRawValue;
@@ -960,7 +963,7 @@ begin
     LName := LSwitchRawValue;
     LMinPos := 0;
 
-    for LPd in FParamDelims do
+    for LPd in FParameterDelimiters do
     begin
       LDelimPos := Pos(LPd, LName);
 
@@ -1289,7 +1292,7 @@ begin
 
   for LStringValue in ASl do
   begin
-    LPosDel := Pos(' ' + FSwitchDelims[0], LStringValue);
+    LPosDel := Pos(' ' + FSwitchDelimiters[0], LStringValue);
 
     if LPosDel > LMaxPos then
       LMaxPos := LPosDel;
@@ -1300,7 +1303,7 @@ begin
   while LIndex < ASl.Count do
   begin
     LStringValue := ASl[LIndex];
-    LPosDel := Pos(' ' + FSwitchDelims[0], LStringValue);
+    LPosDel := Pos(' ' + FSwitchDelimiters[0], LStringValue);
 
     if (LPosDel > 0) and (LPosDel < LMaxPos) then
     begin
@@ -1351,10 +1354,10 @@ begin
     if not (soRequired in LSwitchData.Options) then
       Result := Result + '[';
 
-    Result := Result + FSwitchDelims[0] + GetName(LSwitchData);
+    Result := Result + FSwitchDelimiters[0] + GetName(LSwitchData);
 
     if not LSwitchData.ParamName.IsEmpty then
-      Result := Result + FParamDelims[0] + LSwitchData.ParamName;
+      Result := Result + FParameterDelimiters[0] + LSwitchData.ParamName;
 
     if not (soRequired in LSwitchData.Options) then
       Result := Result + ']';
