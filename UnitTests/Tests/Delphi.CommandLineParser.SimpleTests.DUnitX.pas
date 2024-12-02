@@ -38,6 +38,8 @@ type
     FBooleanParameter: Boolean;
     // FSingleParameter: Single;
     // FDoubleParameter: Double;
+    // FDateParameter: TDate;
+    // FTimeParameter: TTime;
   public
     [CLPLongName('StringParameter'), CLPDescription('String parameter', '<string>'), CLPDefault('default')]
     property StringParameter: string read FStringParameter write FStringParameter;
@@ -56,6 +58,15 @@ type
 
     //[CLPLongName('DoubleParameter'), CLPDescription('Double parameter', '<Float>')]
     // property DoubleParameter: Double read FDoubleParameter write FDoubleParameter;
+
+    //[CLPLongName('DateParameter'), CLPDescription('Date parameter', '<Date>')]
+    // property DateParameter: TDate read FDateParameter write FDateParameter;
+
+    //[CLPLongName('TimeParameter'), CLPDescription('Time parameter', '<Time>')]
+    // property TimeParameter: TTime read FTimeParameter write FTimeParameter;
+
+    //[CLPLongName('DateTimeParameter'), CLPDescription('DateTime parameter', '<DateTime>')]
+    // property DateTimeParameter: TDateTime read FDateTimeParameter write FDateTimeParameter;
   end;
 
   TRequiredCommandLine = class(TObject)
@@ -77,7 +88,7 @@ type
   TListCommandLine = class(TObject)
   strict private
     FArrayParameter: TArray<string>;
-    // FListParameter: TStringList;
+    // FStringsParameter: TStrings;
   public
     constructor Create;
     destructor Destroy; override;
@@ -85,9 +96,8 @@ type
     [CLPLongName('ArrayParameter'), CLPDescription('Array Parameter', '<list of string items>'), CLPDefault('')]
     property ArrayParameter: TArray<string> read FArrayParameter write FArrayParameter;
 
-    // TODO: Add support for TStrings parameter type.
-    // [CLPLongName('ListParameter'), CLPDescription('List Parameter', '<list of string items>'), CLPDefault('')]
-    // property ListParameter: TStringList read FListParameter write FListParameter;
+    //[CLPLongName('StringsParameter'), CLPDescription('Strings parameter', '<List of strings>')]
+    // property StringsParameter: TStrings read FStringsParameter write FStringsParameter;
   end;
 
 implementation
@@ -265,12 +275,12 @@ constructor TListCommandLine.Create;
 begin
   inherited Create;
 
-  // FListParameter := TStringList.Create;
+  // FStringsParameter := TStringList.Create;
 end;
 
 destructor TListCommandLine.Destroy;
 begin
-  // FListParameter.Free;
+  // FStringsParameter.Free;
 
   inherited Destroy;
 end;
