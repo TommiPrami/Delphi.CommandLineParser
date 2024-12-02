@@ -18,6 +18,7 @@ type
          positional parameters, even should not. }
   { TODO: Add support for Single type properties and parameters }
   { TODO: Add support for Double type properties and parameters }
+  { TODO: Add support for TDate, TTime, TDDateTime type of properties and parameters }
 
   ///  <summary>
   ///    Specifies short (one letter) name for the switch.
@@ -238,6 +239,7 @@ type
   end;
 
   TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration, stStringDynArray);
+                  //stSingle, stDouble, stDate, stTime, stDateTime, stStringList
 
   TCLPSwitchOption = (soUnknown, soRequired, soPositional, soPositionRest, soExtendable,
     soFileMustExist, soDirectoryMustExist);
