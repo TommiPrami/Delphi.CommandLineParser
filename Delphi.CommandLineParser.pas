@@ -9,16 +9,16 @@ uses
   System.RTTI, System.SysUtils, System.TypInfo;
 
 type
-  { TODO: add Skip (etc) attribute, to parser just skip the prpperty all to gether, so there could be properties that
+   {TODO: add Skip (etc) attribute, to parser just skip the prpperty all to gether, so there could be properties that
           are helpers fopr App but they are not (never ever) coming from the command line }
-  { TODO: Make list delimitter configurable, now hard coded ',' and ";" (To write given and parse also...) }
-  { TODO: Add supoort for TStrings list parameter. }
-  { TODO: List items with spaces not workkinf -ArrayItem:"item 1";"Item 2" or  -ArrayItem:"item 1;Item 2"
-         and check are both formats valid at first place, unit tests are there, will get parced as
-         positional parameters, even should not. }
-  { TODO: Add support for Single type properties and parameters }
-  { TODO: Add support for Double type properties and parameters }
-  { TODO: Add support for TDate, TTime, TDDateTime type of properties and parameters }
+  { TODO: illegal values to the parser  directly, that are legal to the param, but not logical for use.
+          for now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), whrere fooDefault would
+          be defined asd default foor parameter, fooNonInitialized as internal error state, so
+          could automatially check the if user puts expolisitly fooNonInitialized to commandline,
+          so parser would give error and info for it.
+
+          Not sure how to handle numerical parameters tough, lets say <= 0 would be illegal.
+          or some range is not allowed }
 
   ///  <summary>
   ///    Specifies short (one letter) name for the switch.
@@ -201,15 +201,13 @@ type
   ///  </summary>
   procedure DefaultUsageConsoleOutput(const AParser: ICommandLineParser);
 
-  procedure FreeCommandLineParser;
-
 implementation
 
 uses
   System.Classes, System.Character, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
 
 resourcestring
-  SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept random data, that can''t be converted to Boolean value use True/False.';
+  SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept data, that can''t be converted to Boolean value use True/False.';
   SDefault                          = ', default: ';
   SInvalidDataForSwitch             = 'Invalid data for switch.';
   SLongFormsDontMatch               = 'Short version of the long name must match beginning of the long name';
@@ -239,7 +237,6 @@ type
   end;
 
   TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration, stStringDynArray);
-                  //stSingle, stDouble, stDate, stTime, stDateTime, stStringList
 
   TCLPSwitchOption = (soUnknown, soRequired, soPositional, soPositionRest, soExtendable,
     soFileMustExist, soDirectoryMustExist);
@@ -295,13 +292,11 @@ type
 
 const
   {$IFDEF MSWINDOWS}
-    FSwitchDelimiters: array [0..2] of string = ('-', '/', '--');
+    FSwitchDelims: array [0..2] of string = ('-', '/', '--');
   {$ELSE}
-    FSwitchDelimiters: array [0..1] of string = ('--', '-');
+    FSwitchDelims: array [0..1] of string = ('--', '-');
   {$ENDIF}
-    FParameterDelimiters: array [0..1] of Char = (':', '=');
-    FListDelimiters: array [0..1] of Char = (',', ';');
-
+    FParamDelims : array [0..1] of Char = (':', '=');
 
 type
   TCommandLineParser = class(TInterfacedObject, ICommandLineParser)
@@ -359,7 +354,7 @@ type
   end;
 
 var
-  GCommandLineParser: ICommandLineParser;
+  GGpCommandLineParser: ICommandLineParser;
 
 class function TEnumConverter.EnumToInt<T>(const AEnumValue: T): Integer;
 begin
@@ -419,27 +414,22 @@ end;
 
 function SplitArray(const AStringValue: string): TArray<string>;
 begin
-  Result := AStringValue.Split(FListDelimiters);
+  Result := AStringValue.Split([',', ';']);
 end;
 
 { exports }
 
 function CommandLineParser: ICommandLineParser;
 begin
-  if not Assigned(GCommandLineParser) then
-    GCommandLineParser := CreateCommandLineParser;
+  if not Assigned(GGpCommandLineParser) then
+    GGpCommandLineParser := CreateCommandLineParser;
 
-  Result := GCommandLineParser;
+  Result := GGpCommandLineParser;
 end;
 
 function CreateCommandLineParser: ICommandLineParser;
 begin
   Result := TCommandLineParser.Create;
-end;
-
-procedure FreeCommandLineParser;
-begin
-  GCommandLineParser := nil;
 end;
 
 { CLPNameAttribute }
@@ -564,7 +554,7 @@ var
 begin
   LContext := TRttiContext.Create;
   LRtttiType := LContext.GetType(FInstance.ClassType);
-  LProperty := LRtttiType.GetProperty(FPropertyName);;
+  LProperty := LRtttiType.GetProperty(FPropertyName);
 
   if SwitchType = stEnumeration then
   begin
@@ -656,6 +646,7 @@ begin
     stStringDynArray:
       begin
         var LStringArray := SplitArray(AValue);
+
         var LValue := TValue.From<TArray<string>>(LStringArray);
 
         LProperty.SetValue(FInstance, LValue);
@@ -944,8 +935,7 @@ begin
   AParam := '';
 
   LSwitchRawValue := ASwitchRawValue;
-
-  for LSd in FSwitchDelimiters do
+  for LSd in FSwitchDelims do
     if StartsStr(LSd, LSwitchRawValue) then
     begin
       LSwitchRawValue := ASwitchRawValue;
@@ -963,7 +953,7 @@ begin
     LName := LSwitchRawValue;
     LMinPos := 0;
 
-    for LPd in FParameterDelimiters do
+    for LPd in FParamDelims do
     begin
       LDelimPos := Pos(LPd, LName);
 
@@ -1001,7 +991,7 @@ function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty; const AP
 
   procedure RaiseUnsuppoortedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType);
   begin
-    AResult := stString; // Just something to get rid of Compiler warning
+    AResult := stString; // Just something to get rid of COmpiler warnign
 
     raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
   end;
@@ -1292,7 +1282,7 @@ begin
 
   for LStringValue in ASl do
   begin
-    LPosDel := Pos(' ' + FSwitchDelimiters[0], LStringValue);
+    LPosDel := Pos(' ' + FSwitchDelims[0], LStringValue);
 
     if LPosDel > LMaxPos then
       LMaxPos := LPosDel;
@@ -1303,7 +1293,7 @@ begin
   while LIndex < ASl.Count do
   begin
     LStringValue := ASl[LIndex];
-    LPosDel := Pos(' ' + FSwitchDelimiters[0], LStringValue);
+    LPosDel := Pos(' ' + FSwitchDelims[0], LStringValue);
 
     if (LPosDel > 0) and (LPosDel < LMaxPos) then
     begin
@@ -1354,10 +1344,10 @@ begin
     if not (soRequired in LSwitchData.Options) then
       Result := Result + '[';
 
-    Result := Result + FSwitchDelimiters[0] + GetName(LSwitchData);
+    Result := Result + FSwitchDelims[0] + GetName(LSwitchData);
 
     if not LSwitchData.ParamName.IsEmpty then
-      Result := Result + FParameterDelimiters[0] + LSwitchData.ParamName;
+      Result := Result + FParamDelims[0] + LSwitchData.ParamName;
 
     if not (soRequired in LSwitchData.Options) then
       Result := Result + ']';
