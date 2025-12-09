@@ -9,15 +9,15 @@ uses
   System.RTTI, System.SysUtils, System.TypInfo;
 
 type
-   {TODO: add Skip (etc) attribute, to parser just skip the prpperty all to gether, so there could be properties that
+   {TODO: add Skip (etc) attribute, to parser just skip the property all to gether, so there could be properties that
           are helpers fopr App but they are not (never ever) coming from the command line }
   { TODO: illegal values to the parser  directly, that are legal to the param, but not logical for use.
-          for now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), whrere fooDefault would
+          for now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), where fooDefault would
           be defined asd default foor parameter, fooNonInitialized as internal error state, so
           could automatially check the if user puts expolisitly fooNonInitialized to commandline,
           so parser would give error and info for it.
 
-          Not sure how to handle numerical parameters tough, lets say <= 0 would be illegal.
+          Not sure how to handle numerical parameters though, lets say <= 0 would be illegal.
           or some range is not allowed }
 
   ///  <summary>
@@ -305,7 +305,7 @@ type
     FOptions: TCLPOptions;
     FPositionals: TArray<TSwitchData>;
     FSwitchComparer: TStringComparer;
-    FSwitchDict: TDictionary<string,TSwitchData>;
+    FSwitchDict: TDictionary<string, TSwitchData>;
     FSwitchList: TObjectList<TSwitchData>;
   strict protected
     procedure AddSwitch(const AInstance: TObject; const APropertyName, AName: string;
@@ -666,7 +666,7 @@ begin
 
   FSwitchList := TObjectList<TSwitchData>.Create;
   FSwitchComparer := TIStringComparer.Ordinal; //don't destroy, Ordinal returns a global singleton
-  FSwitchDict := TDictionary<string,TSwitchData>.Create(FSwitchComparer);
+  FSwitchDict := TDictionary<string, TSwitchData>.Create(FSwitchComparer);
 end;
 
 destructor TCommandLineParser.Destroy;
@@ -989,9 +989,9 @@ end;
 
 function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty; const APropertyRttiType: TRttiType): TCLPSwitchType;
 
-  procedure RaiseUnsuppoortedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType);
+  procedure RaiseUnsupportedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType);
   begin
-    AResult := stString; // Just something to get rid of COmpiler warnign
+    AResult := stString; // Just something to get rid of COmpiler warning
 
     raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
   end;
@@ -1012,10 +1012,10 @@ begin
         if APropertyRttiType.TypeKind = tkChar then
           Result := stStringDynArray
         else
-          RaiseUnsuppoortedPropertyType(AProp, Result);
+          RaiseUnsupportedPropertyType(AProp, Result);
       end
     else
-      RaiseUnsuppoortedPropertyType(AProp, Result);
+      RaiseUnsupportedPropertyType(AProp, Result);
   end;
 end;
 
