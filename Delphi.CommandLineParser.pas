@@ -9,16 +9,19 @@ uses
   System.RTTI, System.SysUtils, System.TypInfo;
 
 type
-   {TODO: add Skip (etc) attribute, to parser just skip the property all to gether, so there could be properties that
-          are helpers fopr App but they are not (never ever) coming from the command line }
-  { TODO: illegal values to the parser  directly, that are legal to the param, but not logical for use.
-          for now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), where fooDefault would
-          be defined asd default foor parameter, fooNonInitialized as internal error state, so
-          could automatially check the if user puts expolisitly fooNonInitialized to commandline,
+   {TODO: Add Skip (etc) attribute, to parser just skip the property all to gether, so there could be properties that
+          are helpers for App to use, but they are not (never ever) used from the command line.
+  }
+  { TODO: Illegal values to the parser directly, that are syntactically legal parameters, but not logical for use.
+
+          For now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), where fooDefault would
+          be defined as a default for parameter, fooNonInitialized as internal error state, so
+          could automatically check the if the user puts expolisitly fooNonInitialized to commandline,
           so parser would give error and info for it.
 
           Not sure how to handle numerical parameters though, lets say <= 0 would be illegal.
-          or some range is not allowed }
+          or some range is not allowed
+  }
 
   ///  <summary>
   ///    Specifies short (one letter) name for the switch.
@@ -34,13 +37,15 @@ type
   ///  <summary>
   ///    Specifies long name for the switch. If not set, property name is used
   ///    for long name.
-  ///   A short form of the long name can also be provided which must match the beginning
-  ///   of the long form. In this case, parser will accept shortened versions of the
-  ///   long name, but no shorter than the short form.
-  ///   An example: if 'longName' = 'autotest' and 'shortForm' = 'auto' then the parser
-  ///   will accept 'auto', 'autot', 'autote', 'autotes' and 'autotest', but not 'aut',
-  ///   'au' and 'a'.
-  ///   Multiple long names (alternate switches) can be provided for one entity.
+  ///
+  ///    A short form of the long name can also be provided which must match the beginning
+  ///    of the long form. In this case, parser will accept shortened versions of the
+  ///    long name, but no shorter than the short form.
+  ///    An example: if 'longName' = 'autotest' and 'shortForm' = 'auto' then the parser
+  ///    will accept 'auto', 'autot', 'autote', 'autotes' and 'autotest', but not 'aut',
+  ///    'au' and 'a'.
+  ///
+  ///    Multiple long names (alternate switches) can be provided for one entity.
   ///  </summary>
   CLPLongNameAttribute = class(TCustomAttribute)
   strict private
