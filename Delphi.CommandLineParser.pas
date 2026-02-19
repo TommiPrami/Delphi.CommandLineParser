@@ -16,7 +16,7 @@ type
 
           For now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), where fooDefault would
           be defined as a default for parameter, fooNonInitialized as internal error state, so
-          could automatically check the if the user puts explisitly fooNonInitialized to commandline,
+          could automatically check the if the user puts explicitly fooNonInitialized to commandline,
           so parser would give error and info for it.
 
           Not sure how to handle numerical parameters though, lets say <= 0 would be illegal.
