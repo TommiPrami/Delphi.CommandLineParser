@@ -10,8 +10,7 @@ uses
 
 type
    {TODO: Add Skip (etc) attribute, to parser just skip the property all to gether, so there could be properties that
-          are helpers for App to use, but they are not (never ever) used from the command line.
-  }
+          are helpers for App to use, but they are not (never ever) used from the command line. }
   { TODO: Illegal values to the parser directly, that are syntactically legal parameters, but not logical for use.
 
           For now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), where fooDefault would
@@ -58,8 +57,7 @@ type
   end;
 
   ///  <summary>
-  ///    Specifies default value which will be used if switch is not found on
-  ///    the command line.
+  ///    Specifies default value which will be used, if switch is not found on the command line.
   ///  </summary>
   CLPDefaultAttribute = class(TCustomAttribute)
   strict private
@@ -70,7 +68,7 @@ type
   end;
 
   ///  <summary>
-  ///    Provides switch description, used for the Usage function.
+  ///    Provides switch description, used for the usage function.
   ///  </summary>
   CLPDescriptionAttribute = class(TCustomAttribute)
   strict private
@@ -91,14 +89,14 @@ type
   end;
 
   ///  <summary>
-  ///    When present, adds string parameter check that file must exist.
+  ///    When present, check that given filename must exist.
   ///  </summary>
   CLPFileMustExistAttribute = class(TCustomAttribute)
   public
   end;
 
   ///  <summary>
-  ///    When present, adds string parameter check that file must exist.
+  ///    When present, check that directory must exist.
   ///  </summary>
   CLPDirectoryMustExistAttribute = class(TCustomAttribute)
   public
@@ -133,9 +131,9 @@ type
   end;
 
   TCLPErrorKind = (
-    //configuration error, will result in exception
+    // configuration error, will result in exception
     ekPositionalsBadlyDefined, ekNameNotDefined, ekShortNameTooLong, ekLongFormsDontMatch,
-    //user data error, will result in error result
+    // user data error, will result in error result
     ekMissingPositional, ekExtraPositional, ekMissingNamed, ekUnknownNamed, ekInvalidData,
     ekWronDataTypeForFileOrDirectoryMustExist, ekFileDoNotExist, ekDirectoryDoNotExist);
 
@@ -209,7 +207,7 @@ type
 implementation
 
 uses
-  System.Classes, System.Character, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
+  System.Character, System.Classes, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
 
 resourcestring
   SBooleanSwitchCannotAcceptData    = 'Boolean switch cannot accept data, that can''t be converted to Boolean value use True/False.';
@@ -243,8 +241,7 @@ type
 
   TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration, stStringDynArray);
 
-  TCLPSwitchOption = (soUnknown, soRequired, soPositional, soPositionRest, soExtendable,
-    soFileMustExist, soDirectoryMustExist);
+  TCLPSwitchOption = (soUnknown, soRequired, soPositional, soPositionRest, soExtendable, soFileMustExist, soDirectoryMustExist);
   TCLPSwitchOptions = set of TCLPSwitchOption;
 
   TCLPLongName = record
@@ -273,14 +270,14 @@ type
   strict protected
     function Quote(const AValue: string): string;
   public
-    constructor Create(const AInstance: TObject; const APropertyName, AName: string;
-      const ALongNames: TCLPLongNames; const ASwitchType: TCLPSwitchType; const APosition: Integer;
-      const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName: string);
+    constructor Create(const AInstance: TObject; const APropertyName, AName: string; const ALongNames: TCLPLongNames;
+      const ASwitchType: TCLPSwitchType; const APosition: Integer; const AOptions: TCLPSwitchOptions;
+      const ADefaultValue, ADescription, AParamName: string);
     function AppendValue(const AValue, ADelim: string; const ADoQuote: Boolean): Boolean;
-    procedure Enable;
     function GetValue: string;
     function GetValueOrDefault: string;
     function SetValue(const AValue: string): Boolean;
+    procedure Enable;
     property DefaultValue: string read FDefaultValue;
     property Description: string read FDescription;
     property LongNames: TCLPLongNames read FLongNames;
@@ -313,10 +310,8 @@ type
     FSwitchDict: TDictionary<string, TSwitchData>;
     FSwitchList: TObjectList<TSwitchData>;
   strict protected
-    procedure AddSwitch(const AInstance: TObject; const APropertyName, AName: string;
-      const ALongNames: TCLPLongNames; const ASwitchType: TCLPSwitchType; const APosition: Integer;
-      const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName: string);
     function CheckAttributes: Boolean;
+    function FileSystemCheck(const ASwitchData: TSwitchData): TCLPSwitchOption;
     function FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
     function GetCommandLine: string;
     function GetErrorInfo: TCLPErrorInfo; inline;
@@ -324,12 +319,14 @@ type
     function GrabNextElement(var s, el: string): Boolean;
     function IsSwitch(const ASwitchRawValue: string; var AParam: string; var AData: TSwitchData): Boolean;
     function MapPropertyType(const AProp: TRttiProperty; const APropertyRttiType: TRttiType): TCLPSwitchType;
-    procedure ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty; const APropertyRttiType: TRttiType);
-    function FileSystemCheck(const ASwitchData: TSwitchData): TCLPSwitchOption;
     function ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
+    function SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed; const AText: string; const APosition: Integer = 0;
+      const ASwitchName: string = ''): Boolean;
+    procedure AddSwitch(const AInstance: TObject; const APropertyName, AName: string; const ALongNames: TCLPLongNames;
+      const ASwitchType: TCLPSwitchType; const APosition: Integer; const AOptions: TCLPSwitchOptions;
+      const ADefaultValue, ADescription, AParamName: string);
+    procedure ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty; const APropertyRttiType: TRttiType);
     procedure ProcessDefinitionClass(const ACommandData: TObject);
-    function SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed; const AText: string;
-      const APosition: Integer = 0; const ASwitchName: string = ''): Boolean;
     procedure SetOptions(const AValue: TCLPOptions);
   protected // used in TUsageFormatter
     property Positionals: TArray<TSwitchData> read FPositionals;
@@ -338,8 +335,8 @@ type
     constructor Create;
     destructor  Destroy; override;
     function GetExtension(const ASwitch: string): string;
-    function Parse(const ACommandLine: string; const ACommandData: TObject): Boolean; overload;
     function Parse(const ACommandData: TObject): Boolean; overload;
+    function Parse(const ACommandLine: string; const ACommandData: TObject): Boolean; overload;
     function Usage(const AWrapAtColumn: Integer = 80): TArray<string>;
     property ErrorInfo: TCLPErrorInfo read GetErrorInfo;
     property Options: TCLPOptions read GetOptions write SetOptions;
@@ -350,16 +347,15 @@ type
     function AddParameter(const AName, APrefix, ADelim: string; const AData: TSwitchData): string;
     procedure AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
     function Wrap(const AName: string; const AData: TSwitchData): string;
-    function LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
+    function LastSpaceBefore(const AValue: string; const AStartPos: Integer): Integer;
     function GetCommandLinePrototype(const APositionalParams: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): string;
     function GetPositionalSwitchName(const ASwitchData: TSwitchData): string;
   public
-    procedure Usage(const AParser: TCommandLineParser; const AWrapAtColumn: Integer;
-      var AUsageList: TArray<string>);
+    procedure Usage(const AParser: TCommandLineParser; var AUsageList: TArray<string>; const AWrapAtColumn: Integer = 80);
   end;
 
 var
-  GGpCommandLineParser: ICommandLineParser;
+  GDelphiCommandLineParser: ICommandLineParser;
 
 class function TEnumConverter.EnumToInt<T>(const AEnumValue: T): Integer;
 begin
@@ -426,10 +422,10 @@ end;
 
 function CommandLineParser: ICommandLineParser;
 begin
-  if not Assigned(GGpCommandLineParser) then
-    GGpCommandLineParser := CreateCommandLineParser;
+  if not Assigned(GDelphiCommandLineParser) then
+    GDelphiCommandLineParser := CreateCommandLineParser;
 
-  Result := GGpCommandLineParser;
+  Result := GDelphiCommandLineParser;
 end;
 
 function CreateCommandLineParser: ICommandLineParser;
@@ -1227,17 +1223,25 @@ var
   LContext: TRttiContext;
   LProperty: TRttiProperty;
   LRttiType: TRttiType;
+  LCLassType: TClass;
 begin
   LContext := TRttiContext.Create;
-  LRttiType := LContext.GetType(ACommandData.ClassType);
+  LClassType := ACommandData.ClassType;
 
-  for LProperty in LRttiType.GetProperties do
-    if LProperty.Parent = LRttiType then
-      ProcessAttributes(ACommandData, LProperty, LContext.GetType(LProperty.Handle));
+  while Assigned(LCLassType) do
+  begin
+    LRttiType := LContext.GetType(LCLassType);
+
+    for LProperty in LRttiType.GetProperties do
+      if LProperty.Parent = LRttiType then
+        ProcessAttributes(ACommandData, LProperty, LContext.GetType(LProperty.Handle));
+
+    LCLassType := LCLassType.ClassParent;
+  end;
 end;
 
-function TCommandLineParser.SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed;
-  const AText: string; const APosition: Integer; const ASwitchName: string): Boolean;
+function TCommandLineParser.SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed; const AText: string;
+  const APosition: Integer; const ASwitchName: string): Boolean;
 begin
   FErrorInfo.Kind := AKind;
   FErrorInfo.Detailed := ADetail;
@@ -1260,7 +1264,7 @@ var
 begin
   LFormatter := TUsageFormatter.Create;
   try
-    LFormatter.Usage(Self, AWrapAtColumn, Result);
+    LFormatter.Usage(Self, Result, AWrapAtColumn);
   finally
     FreeAndNil(LFormatter);
   end;
@@ -1371,16 +1375,15 @@ begin
     Result := IntToStr(ASwitchData.Position);
 end;
 
-function TUsageFormatter.LastSpaceBefore(const s: string; const AStartPos: Integer): Integer;
+function TUsageFormatter.LastSpaceBefore(const AValue: string; const AStartPos: Integer): Integer;
 begin
   Result := AStartPos - 1;
 
-  while (Result > 0) and (s[Result] <> ' ') do
+  while (Result > 0) and (AValue[Result] <> ' ') do
     Dec(Result);
 end;
 
-procedure TUsageFormatter.Usage(const AParser: TCommandLineParser; const AWrapAtColumn: Integer;
-  var AUsageList: TArray<string>);
+procedure TUsageFormatter.Usage(const AParser: TCommandLineParser; var AUsageList: TArray<string>; const AWrapAtColumn: Integer = 80);
 var
   LAddedOptions: Boolean;
   LCommandLine: string;
