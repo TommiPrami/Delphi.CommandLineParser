@@ -18,7 +18,11 @@ example parameter configuration
 
 ```Delphi
 type
-  TCommandLine = class
+  TCustomCommandLine = class(TObject)
+  strict private
+  public
+  end;
+  TCommandLine = class(TCustomCommandLine)
   strict private
     FAutoTest  : Boolean;
     FExtraFiles: string;
