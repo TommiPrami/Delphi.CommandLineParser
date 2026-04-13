@@ -12,13 +12,22 @@ Chages to original: https://github.com/gabr42/GpDelphiUnits - GpCommandLineParse
   - Default parameter stwiths in windows is "-" (not "/" character)
   - Added support for Enums
   - Added support for TArray<string>
-  - Some comments that **I** think that are not needed, like version history, are removed, and some are moved to this readme.md etc...
+  - Added support for object inheritance of the commandline objects. So the multiple applicatiosn ca chare common parameters and no need to duplicate code.
+  - Some comments that **I** think that are not needed, like version history, are removed, and some are moved into this readme.md etc...
 
 example parameter configuration
 
 ```Delphi
 type
-  TCommandLine = class
+  TCustomCommandLine = class(TCustomCommandLine)
+  strict private
+    FUseMultiThreading: Boolean;
+  public
+    [CLPLongName('UseMultiThreading'), CLPDescription('Common Parameter for all commandline applications ', '<True/False>'), CLPDefault('True')]
+    property UseMultiThreading: Boolean read FUseMultiThreading write FUseMultiThreading;
+  end;
+
+  TCommandLine = class(TCustomCommandLine)
   strict private
     FAutoTest  : Boolean;
     FExtraFiles: string;
