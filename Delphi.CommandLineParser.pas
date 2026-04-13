@@ -638,8 +638,7 @@ begin
             LProperty.SetValue(FInstance, LValue)
           end
           else
-            raise Exception.Create('TSwitchData.SetValue: Unsupported value "' + AValue.QuotedString('"') +
-              ' for ' + FPropertyName);
+            raise Exception.Create('TSwitchData.SetValue: Unsupported value "' + AValue.QuotedString('"') + ' for ' + FPropertyName);
         end;
       end;
     stStringDynArray:
@@ -664,7 +663,7 @@ begin
   inherited Create;
 
   FSwitchList := TObjectList<TSwitchData>.Create;
-  FSwitchComparer := TIStringComparer.Ordinal; //don't destroy, Ordinal returns a global singleton
+  FSwitchComparer := TIStringComparer.Ordinal; // Don't destroy, Ordinal returns a global singleton
   FSwitchDict := TDictionary<string, TSwitchData>.Create(FSwitchComparer);
 end;
 
@@ -676,16 +675,16 @@ begin
   inherited Destroy;
 end;
 
-procedure TCommandLineParser.AddSwitch(const AInstance: TObject; const APropertyName, AName: string;
-  const ALongNames: TCLPLongNames; const ASwitchType: TCLPSwitchType; const APosition: Integer;
-  const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName: string);
+procedure TCommandLineParser.AddSwitch(const AInstance: TObject; const APropertyName, AName: string; const ALongNames: TCLPLongNames;
+  const ASwitchType: TCLPSwitchType; const APosition: Integer; const AOptions: TCLPSwitchOptions;
+  const ADefaultValue, ADescription, AParamName: string);
 var
   LSwitchData: TSwitchData;
   LIndex: Integer;
   LLongName: TCLPLongName;
 begin
-  LSwitchData := TSwitchData.Create(AInstance, APropertyName, AName, ALongNames, ASwitchType,
-    APosition, AOptions, ADefaultValue, ADescription, AParamName);
+  LSwitchData := TSwitchData.Create(AInstance, APropertyName, AName, ALongNames, ASwitchType, APosition, AOptions, ADefaultValue,
+    ADescription, AParamName);
 
   FSwitchList.Add(LSwitchData);
 
@@ -706,14 +705,14 @@ end;
 ///    Verifies attribute consistency.
 ///
 ///   For positional attributes there must be no 'holes' (i.e. positional attributes must
-///   be numbere 1,2,...N) and there must be no 'required' attributes after 'optional'
+///   be numbered 1,2,...N) and there must be no 'required' attributes after 'optional'
 ///   attributes.
 ///
 ///   There must be at most one 'Rest' positional attribute.
 ///
 ///   Each switch attribute must have a long or short name. (That is actually enforced in
 ///   in the current implementation as long name is set to property name by default,
-///   but the test is still left in for future proofing.)
+///   but the test is still left in for future-proofing.)
 ///
 ///   Short names (when provided) must be one letter long.
 ///
@@ -877,6 +876,7 @@ begin
   Result := FOptions;
 end;
 
+// TODO: Rename parameters
 function TCommandLineParser.GrabNextElement(var s, el: string): Boolean;
 var
   LPosition: Integer;
@@ -979,7 +979,7 @@ begin
         AParam := LSwitchRawValue;
         Delete(AParam, 1, 1);
 
-        if (AParam <> '') and (AData.SwitchType = stBoolean) then //misdetection, Boolean switch cannot accept data
+        if (AParam <> '') and (AData.SwitchType = stBoolean) then // misdetection, Boolean switch cannot accept data
           AData := nil;
       end;
     end;
@@ -990,7 +990,7 @@ function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty; const AP
 
   procedure RaiseUnsupportedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType);
   begin
-    AResult := stString; // Just something to get rid of COmpiler warning
+    AResult := stString; // Just something to get rid of compiler warning
 
     raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
   end;
@@ -1182,18 +1182,22 @@ begin
   for LSwitchData in FPositionals do
   begin
     if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
-      Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, LSwitchData.Position, LSwitchData.LongNames[0].LongForm))
+      Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, LSwitchData.Position,
+        LSwitchData.LongNames[0].LongForm))
     else if (soFileMustExist in LSwitchData.Options) or (soDirectoryMustExist in LSwitchData.Options) then
     begin
       if LSwitchData.SwitchType in [stString, stStringDynArray] then
       begin
         case FileSystemCheck(LSwitchData) of
-          soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
-          soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+          soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position,
+            LSwitchData.LongNames[0].LongForm));
+          soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position,
+            LSwitchData.LongNames[0].LongForm));
         end;
       end
       else
-        Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist, SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+        Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist,
+          SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
     end;
   end;
 
@@ -1206,12 +1210,15 @@ begin
       if LSwitchData.SwitchType in [stString, stStringDynArray] then
       begin
         case FileSystemCheck(LSwitchData) of
-          soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
-          soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+          soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position,
+            LSwitchData.LongNames[0].LongForm));
+          soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position,
+            LSwitchData.LongNames[0].LongForm));
         end;
       end
       else
-        Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist, SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+        Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist,
+          SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
     end;
   end;
 end;
@@ -1397,7 +1404,7 @@ begin
 
     for LSwitchData in AParser.Positionals do
     begin
-      if not Assigned(LSwitchData) then //error in definition class
+      if not Assigned(LSwitchData) then // error in definition class
         LHelp.Add('*** missing ***')
       else
       begin
@@ -1406,7 +1413,7 @@ begin
         LCommandLine := LCommandLine + ' ' + Wrap(LName, LSwitchData);
         LHelp.Add(Format('%s - %s', [Wrap(LName, LSwitchData), LSwitchData.Description]));
       end;
-    end; //for data in FPositionals
+    end;
 
     LAddedOptions := False;
 
