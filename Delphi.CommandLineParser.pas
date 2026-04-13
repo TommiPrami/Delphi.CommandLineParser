@@ -385,7 +385,6 @@ begin
   end;
 end;
 
-
 procedure DefaultUsageConsoleOutput(const AParser: ICommandLineParser);
 var
   LUsageLines: TArray<string>;
@@ -559,7 +558,6 @@ begin
 
   if SwitchType = stEnumeration then
   begin
-    // TODO: Untested
     var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, FPropertyName);
 
     if LEnumValue <> -1 then
