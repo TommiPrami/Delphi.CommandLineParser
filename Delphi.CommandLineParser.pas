@@ -345,11 +345,11 @@ type
   TUsageFormatter = class
   private
     function AddParameter(const AName, APrefix, ADelim: string; const AData: TSwitchData): string;
-    procedure AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
-    function Wrap(const AName: string; const AData: TSwitchData): string;
-    function LastSpaceBefore(const AValue: string; const AStartPos: Integer): Integer;
     function GetCommandLinePrototype(const APositionalParams: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): string;
     function GetPositionalSwitchName(const ASwitchData: TSwitchData): string;
+    function LastSpaceBefore(const AValue: string; const AStartPos: Integer): Integer;
+    function Wrap(const AName: string; const AData: TSwitchData): string;
+    procedure AlignAndWrap(const ASl: TStringList; const AWrapAtColumn: Integer);
   public
     procedure Usage(const AParser: TCommandLineParser; var AUsageList: TArray<string>; const AWrapAtColumn: Integer = 80);
   end;
