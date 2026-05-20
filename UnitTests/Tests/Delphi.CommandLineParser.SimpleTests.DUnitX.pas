@@ -22,7 +22,7 @@ type
     procedure SimpleNonDefaultEqualSeparatorTest;
 
     [Test]
-    procedure SimpleReguiredNoDefaultTest;
+    procedure SimpleRequiredNoDefaultTest;
 
     [Test]
     procedure SimpleListParameterTest;
@@ -207,7 +207,7 @@ begin
   end;
 end;
 
-procedure TCommandLineParserSimpleTestsDUnitX.SimpleReguiredNoDefaultTest;
+procedure TCommandLineParserSimpleTestsDUnitX.SimpleRequiredNoDefaultTest;
 begin
   var LCommandLineParser := CreateCommandLineParser;
   var LOptions := TRequiredCommandLine.Create;
