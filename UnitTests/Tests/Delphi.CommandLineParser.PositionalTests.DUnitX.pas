@@ -139,7 +139,7 @@ begin
       begin
         LParser.Parse('a b', LOpts);
       end,
-      Exception);
+      ECLPConfigurationError);
   finally
     LOpts.Free;
   end;
@@ -168,7 +168,7 @@ begin
       begin
         LParser.Parse('', LOpts);
       end,
-      Exception);
+      ECLPConfigurationError);
   finally
     LOpts.Free;
   end;
@@ -185,7 +185,7 @@ begin
       begin
         LParser.Parse('', LOpts);
       end,
-      Exception);
+      ECLPConfigurationError);
   finally
     LOpts.Free;
   end;

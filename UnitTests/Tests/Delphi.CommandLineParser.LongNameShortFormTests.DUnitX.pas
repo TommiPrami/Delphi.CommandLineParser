@@ -150,23 +150,50 @@ begin
       begin
         LParser.Parse('', LOpts);
       end,
-      Exception);
+      ECLPConfigurationError);
   finally
     LOpts.Free;
   end;
 end;
 
 procedure TLongNameShortFormTests.TwoLetterShortNameRaisesConfigError;
+var
+  LRaised: Boolean;
+  LRaisedClass: string;
+  LRaisedMessage: string;
+  LParseResult: Boolean;
 begin
   var LParser := CreateCommandLineParser;
   var LOpts := TShortNameTooLong.Create;
   try
-    Assert.WillRaise(
-      procedure
+    LRaised := False;
+    LRaisedClass := '';
+    LRaisedMessage := '';
+    LParseResult := False;
+    try
+      LParseResult := LParser.Parse('', LOpts);
+    except
+      on E: Exception do
       begin
-        LParser.Parse('', LOpts);
-      end,
-      Exception);
+        LRaised := True;
+        LRaisedClass := E.ClassName;
+        LRaisedMessage := E.Message;
+      end;
+    end;
+
+    if not LRaised then
+      Assert.Fail(Format(
+        'Expected ECLPConfigurationError for two-letter short name, but Parse returned %s. ' +
+        'ErrorInfo.IsError=%s, Kind=%d, Detailed=%d, SwitchName="%s", Text="%s"',
+        [BoolToStr(LParseResult, True),
+         BoolToStr(LParser.ErrorInfo.IsError, True),
+         Integer(LParser.ErrorInfo.Kind),
+         Integer(LParser.ErrorInfo.Detailed),
+         LParser.ErrorInfo.SwitchName,
+         LParser.ErrorInfo.Text]));
+
+    Assert.AreEqual('ECLPConfigurationError', LRaisedClass,
+      'Wrong exception class. Message: ' + LRaisedMessage);
   finally
     LOpts.Free;
   end;
