@@ -769,20 +769,20 @@ begin
     LPositionRest.Position := LHighPos;
   end;
 
-  if LHighPos = 0 then
-    Exit(True);
+  if LHighPos > 0 then
+  begin
+    SetLength(FPositionals, LHighPos);
+    for LIndex := Low(FPositionals) to High(FPositionals) do
+      FPositionals[LIndex] := nil;
 
-  SetLength(FPositionals, LHighPos);
-  for LIndex := Low(FPositionals) to High(FPositionals) do
-    FPositionals[LIndex] := nil;
+    for LSwitchData in FSwitchList do
+      if soPositional in LSwitchData.Options then
+        FPositionals[LSwitchData.Position - 1] := LSwitchData;
 
-  for LSwitchData in FSwitchList do
-    if soPositional in LSwitchData.Options then
-      FPositionals[LSwitchData.Position - 1] := LSwitchData;
-
-  for LIndex := Low(FPositionals) to High(FPositionals) do
-    if FPositionals[LIndex] = nil then
-      Exit(SetError(ekPositionalsBadlyDefined, edMissingPositionalDefinition, SMissingPositionalParameterDefini, LIndex + 1));
+    for LIndex := Low(FPositionals) to High(FPositionals) do
+      if FPositionals[LIndex] = nil then
+        Exit(SetError(ekPositionalsBadlyDefined, edMissingPositionalDefinition, SMissingPositionalParameterDefini, LIndex + 1));
+  end;
 
   for LSwitchData in FSwitchList do
     if not (soPositional in LSwitchData.Options) then

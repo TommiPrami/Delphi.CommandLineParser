@@ -96,6 +96,24 @@
         </DelphiCompile>
         <DCCReference Include="..\Delphi.CommandLineParser.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.SimpleTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.SwitchSyntaxTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.BooleanTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.IntegerTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.EnumTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.StringArrayTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.QuotingTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.PositionalTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.PositionRestTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.RequiredAndDefaultsTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.LongNameShortFormTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.ShortNameTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.FileSystemTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.ExtendableTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.IgnoreUnknownTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.ErrorInfoTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.InheritanceTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.ConfigErrorTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.ParserLifecycleTests.DUnitX.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

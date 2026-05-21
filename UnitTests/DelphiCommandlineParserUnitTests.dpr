@@ -20,7 +20,25 @@ uses
   {$ENDIF }
   DUnitX.TestFramework,
   Delphi.CommandLineParser in '..\Delphi.CommandLineParser.pas',
-  Delphi.CommandLineParser.SimpleTests.DUnitX in 'Tests\Delphi.CommandLineParser.SimpleTests.DUnitX.pas';
+  Delphi.CommandLineParser.SimpleTests.DUnitX in 'Tests\Delphi.CommandLineParser.SimpleTests.DUnitX.pas',
+  Delphi.CommandLineParser.SwitchSyntaxTests.DUnitX in 'Tests\Delphi.CommandLineParser.SwitchSyntaxTests.DUnitX.pas',
+  Delphi.CommandLineParser.BooleanTests.DUnitX in 'Tests\Delphi.CommandLineParser.BooleanTests.DUnitX.pas',
+  Delphi.CommandLineParser.IntegerTests.DUnitX in 'Tests\Delphi.CommandLineParser.IntegerTests.DUnitX.pas',
+  Delphi.CommandLineParser.EnumTests.DUnitX in 'Tests\Delphi.CommandLineParser.EnumTests.DUnitX.pas',
+  Delphi.CommandLineParser.StringArrayTests.DUnitX in 'Tests\Delphi.CommandLineParser.StringArrayTests.DUnitX.pas',
+  Delphi.CommandLineParser.QuotingTests.DUnitX in 'Tests\Delphi.CommandLineParser.QuotingTests.DUnitX.pas',
+  Delphi.CommandLineParser.PositionalTests.DUnitX in 'Tests\Delphi.CommandLineParser.PositionalTests.DUnitX.pas',
+  Delphi.CommandLineParser.PositionRestTests.DUnitX in 'Tests\Delphi.CommandLineParser.PositionRestTests.DUnitX.pas',
+  Delphi.CommandLineParser.RequiredAndDefaultsTests.DUnitX in 'Tests\Delphi.CommandLineParser.RequiredAndDefaultsTests.DUnitX.pas',
+  Delphi.CommandLineParser.LongNameShortFormTests.DUnitX in 'Tests\Delphi.CommandLineParser.LongNameShortFormTests.DUnitX.pas',
+  Delphi.CommandLineParser.ShortNameTests.DUnitX in 'Tests\Delphi.CommandLineParser.ShortNameTests.DUnitX.pas',
+  Delphi.CommandLineParser.FileSystemTests.DUnitX in 'Tests\Delphi.CommandLineParser.FileSystemTests.DUnitX.pas',
+  Delphi.CommandLineParser.ExtendableTests.DUnitX in 'Tests\Delphi.CommandLineParser.ExtendableTests.DUnitX.pas',
+  Delphi.CommandLineParser.IgnoreUnknownTests.DUnitX in 'Tests\Delphi.CommandLineParser.IgnoreUnknownTests.DUnitX.pas',
+  Delphi.CommandLineParser.ErrorInfoTests.DUnitX in 'Tests\Delphi.CommandLineParser.ErrorInfoTests.DUnitX.pas',
+  Delphi.CommandLineParser.InheritanceTests.DUnitX in 'Tests\Delphi.CommandLineParser.InheritanceTests.DUnitX.pas',
+  Delphi.CommandLineParser.ConfigErrorTests.DUnitX in 'Tests\Delphi.CommandLineParser.ConfigErrorTests.DUnitX.pas',
+  Delphi.CommandLineParser.ParserLifecycleTests.DUnitX in 'Tests\Delphi.CommandLineParser.ParserLifecycleTests.DUnitX.pas';
 
 { keep comment here to protect the following conditional from being removed by the IDE when adding a unit }
 {$IFNDEF TESTINSIGHT}
