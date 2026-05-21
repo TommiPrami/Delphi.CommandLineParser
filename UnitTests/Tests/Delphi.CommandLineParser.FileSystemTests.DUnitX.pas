@@ -95,7 +95,7 @@ begin
   var LOpts := TFileOptions.Create;
   try
     LParser.Parse('-Path:Z:\definitely\does\not\exist_4815162342.bin', LOpts);
-    Assert.AreEqual(Integer(ekFileDoNotExist), Integer(LParser.ErrorInfo.Kind));
+    Assert.AreEqual(Integer(ekFileDoesNotExist), Integer(LParser.ErrorInfo.Kind));
   finally
     LOpts.Free;
   end;
@@ -124,7 +124,7 @@ begin
   var LOpts := TDirectoryOptions.Create;
   try
     Assert.IsFalse(LParser.Parse('-Dir:Z:\nosuchdir_4815162342', LOpts));
-    Assert.AreEqual(Integer(ekDirectoryDoNotExist), Integer(LParser.ErrorInfo.Kind));
+    Assert.AreEqual(Integer(ekDirectoryDoesNotExist), Integer(LParser.ErrorInfo.Kind));
   finally
     LOpts.Free;
   end;
@@ -137,7 +137,7 @@ begin
   try
     Assert.IsFalse(LParser.Parse('-N:42', LOpts));
     Assert.AreEqual(
-      Integer(ekWronDataTypeForFileOrDirectoryMustExist),
+      Integer(ekWrongDataTypeForFileOrDirectoryMustExist),
       Integer(LParser.ErrorInfo.Kind));
   finally
     LOpts.Free;
