@@ -193,7 +193,8 @@ type
     ekPositionalsBadlyDefined, ekNameNotDefined, ekShortNameTooLong, ekLongFormsDontMatch,
     // user data error, will result in error result
     ekMissingPositional, ekExtraPositional, ekMissingNamed, ekUnknownNamed, ekInvalidData,
-    ekWrongDataTypeForFileOrDirectoryMustExist, ekFileDoesNotExist, ekDirectoryDoesNotExist);
+    ekWrongDataTypeForFileOrDirectoryMustExist, ekFileDoesNotExist, ekDirectoryDoesNotExist,
+    ekResponseFile);
 
   TCLPErrorDetailed = (
     edBooleanWithData,             // SBooleanSwitchCannotAcceptData
@@ -213,7 +214,9 @@ type
     edMissingRequiredParameter,    // SRequiredParameterWasNotProvided
     edWrongDataTypeForFileOrDirectoryMustExist, // SWrongDataTypeForFileOrDirectoryMustExist
     edFileDoesNotExist,              // SFileDoesNotExist
-    edDirectoryDoesNotExist          // SDirectoryDoesNotExist
+    edDirectoryDoesNotExist,         // SDirectoryDoesNotExist
+    edResponseFileMustBeSole,        // SResponseFileMustBeSole
+    edResponseFileNotFound           // SResponseFileNotFound
   );
 
   TCLPErrorInfo = record
@@ -299,6 +302,8 @@ resourcestring
   SWrongDataTypeForFileOrDirectoryMustExist = 'Switch data type for file or directory check must be string.';
   SFileDoesNotExist                  = 'File must exist.';
   SDirectoryDoesNotExist             = 'Directory must exist.';
+  SResponseFileMustBeSole            = 'A response file (@file) must be the only command-line argument; no other switches or @ tokens are allowed.';
+  SResponseFileNotFound              = 'Response file does not exist.';
 
 type
   // Usage: LEnumNameStr := TEnumConverter.EnumToString(FormMain.BorderStyle);
@@ -398,6 +403,7 @@ type
     FSwitchList: TObjectList<TSwitchData>;
   strict protected
     function CheckAttributes: Boolean;
+    function ExpandResponseFile(var ACommandLine: string): Boolean;
     function FileSystemCheck(const ASwitchData: TSwitchData): TFSCheckResult;
     function FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
     function BuildCommandLineFromParams: string;
@@ -1020,6 +1026,85 @@ begin
           Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, LLongName.LongForm));
 end;
 
+///  <summary>
+///    Detects and expands a response-file token (@filename) on the command line.
+///
+///    Rules:
+///      * If no token starts with '@', the command line is left unchanged
+///        and the function returns True.
+///      * If exactly one token is present AND it starts with '@', the file is
+///        loaded and its contents replace ACommandLine. Newlines in the file
+///        are treated as whitespace so the existing tokenizer handles it.
+///      * Any other shape (multiple tokens with @, two @-tokens, etc.) is an
+///        error — response files must be the sole command-line argument.
+///      * Recursion is not allowed: if the loaded content itself contains an
+///        '@' token, that's also an error.
+///  </summary>
+function TCommandLineParser.ExpandResponseFile(var ACommandLine: string): Boolean;
+var
+  LCopy: string;
+  LToken: string;
+  LTokens: TStringList;
+  LResponseFileToken: string;
+  LResponseFileCount: Integer;
+  LFileName: string;
+  LFileLines: TStringList;
+begin
+  LResponseFileToken := '';
+  LResponseFileCount := 0;
+
+  // First pass: tokenize a copy of the command line and look for @-tokens.
+  LTokens := TStringList.Create;
+  try
+    LCopy := ACommandLine;
+    while GrabNextElement(LCopy, LToken) do
+    begin
+      LTokens.Add(LToken);
+      if LToken.StartsWith('@') then
+      begin
+        LResponseFileToken := LToken;
+        Inc(LResponseFileCount);
+      end;
+    end;
+
+    if LResponseFileCount = 0 then
+      Exit(True); // Nothing to expand.
+
+    if (LResponseFileCount > 1) or (LTokens.Count > 1) then
+      Exit(SetError(ekResponseFile, edResponseFileMustBeSole, SResponseFileMustBeSole,
+        0, LResponseFileToken));
+  finally
+    LTokens.Free;
+  end;
+
+  // Exactly one token, which is "@<filename>". Load the file.
+  LFileName := LResponseFileToken;
+  Delete(LFileName, 1, 1);
+
+  if not FileExists(LFileName) then
+    Exit(SetError(ekResponseFile, edResponseFileNotFound, SResponseFileNotFound,
+      0, LFileName));
+
+  LFileLines := TStringList.Create;
+  try
+    LFileLines.LoadFromFile(LFileName);
+    // Join all lines with single spaces. GrabNextElement re-tokenizes this
+    // exactly like a regular command line, with full quoting support.
+    ACommandLine := string.Join(' ', LFileLines.ToStringArray);
+  finally
+    LFileLines.Free;
+  end;
+
+  // Recursion guard: the expanded content must not itself contain @-tokens.
+  LCopy := ACommandLine;
+  while GrabNextElement(LCopy, LToken) do
+    if LToken.StartsWith('@') then
+      Exit(SetError(ekResponseFile, edResponseFileMustBeSole, SResponseFileMustBeSole,
+        0, LToken));
+
+  Result := True;
+end;
+
 function TCommandLineParser.FileSystemCheck(const ASwitchData: TSwitchData): TFSCheckResult;
 var
   LStringValue: string;
@@ -1282,6 +1367,8 @@ begin
 end;
 
 function TCommandLineParser.Parse(const ACommandLine: string; const ACommandData: TObject): Boolean;
+var
+  LCommandLine: string;
 begin
   FErrorInfo := Default(TCLPErrorInfo);
   FHelpRequested := False;
@@ -1294,9 +1381,13 @@ begin
   Result := CheckAttributes;
 
   if not Result then
-    raise ECLPConfigurationError.Create(ErrorInfo) at ReturnAddress
-  else
-    Result := ProcessCommandLine(ACommandData, ACommandLine);
+    raise ECLPConfigurationError.Create(ErrorInfo) at ReturnAddress;
+
+  LCommandLine := ACommandLine;
+  if not ExpandResponseFile(LCommandLine) then
+    Exit(False);
+
+  Result := ProcessCommandLine(ACommandData, LCommandLine);
 end;
 
 function TCommandLineParser.Parse(const ACommandData: TObject): Boolean;

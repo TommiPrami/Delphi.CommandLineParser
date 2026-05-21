@@ -122,6 +122,7 @@
         <DCCReference Include="Tests\Delphi.CommandLineParser.EnvironmentTests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.EmptyValueTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.ResponseFileTests.DUnitX.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

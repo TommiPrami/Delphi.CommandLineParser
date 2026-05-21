@@ -46,7 +46,8 @@ uses
   Delphi.CommandLineParser.HelpSwitchTests.DUnitX in 'Tests\Delphi.CommandLineParser.HelpSwitchTests.DUnitX.pas',
   Delphi.CommandLineParser.EnvironmentTests.DUnitX in 'Tests\Delphi.CommandLineParser.EnvironmentTests.DUnitX.pas',
   Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX in 'Tests\Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX.pas',
-  Delphi.CommandLineParser.EmptyValueTests.DUnitX in 'Tests\Delphi.CommandLineParser.EmptyValueTests.DUnitX.pas';
+  Delphi.CommandLineParser.EmptyValueTests.DUnitX in 'Tests\Delphi.CommandLineParser.EmptyValueTests.DUnitX.pas',
+  Delphi.CommandLineParser.ResponseFileTests.DUnitX in 'Tests\Delphi.CommandLineParser.ResponseFileTests.DUnitX.pas';
 
 { keep comment here to protect the following conditional from being removed by the IDE when adding a unit }
 {$IFNDEF TESTINSIGHT}
