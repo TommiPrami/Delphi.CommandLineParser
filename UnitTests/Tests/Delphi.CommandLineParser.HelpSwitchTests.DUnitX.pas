@@ -1,4 +1,4 @@
-unit Delphi.CommandLineParser.HelpSwitchTests.DUnitX;
+﻿unit Delphi.CommandLineParser.HelpSwitchTests.DUnitX;
 
 interface
 

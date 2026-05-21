@@ -1,4 +1,4 @@
-unit Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX;
+﻿unit Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX;
 
 interface
 

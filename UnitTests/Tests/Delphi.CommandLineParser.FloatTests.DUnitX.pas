@@ -1,4 +1,4 @@
-unit Delphi.CommandLineParser.FloatTests.DUnitX;
+﻿unit Delphi.CommandLineParser.FloatTests.DUnitX;
 
 interface
 

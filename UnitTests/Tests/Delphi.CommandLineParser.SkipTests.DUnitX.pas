@@ -1,4 +1,4 @@
-unit Delphi.CommandLineParser.SkipTests.DUnitX;
+﻿unit Delphi.CommandLineParser.SkipTests.DUnitX;
 
 interface
 
