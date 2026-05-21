@@ -990,11 +990,11 @@ end;
 
 function TCommandLineParser.MapPropertyType(const AProp: TRttiProperty; const APropertyRttiType: TRttiType): TCLPSwitchType;
 
-  procedure RaiseUnsupportedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType);
+  procedure RaiseUnsupportedPropertyType(const AProp: TRttiProperty; var AResult: TCLPSwitchType); noreturn; // <- TODO: Needs define D12-
   begin
     AResult := stString; // Just something to get rid of compiler warning
 
-    raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]);
+    raise Exception.CreateFmt(SUnsupportedPropertyType, [AProp.Name]) at ReturnAddress;
   end;
 
 begin
@@ -1033,7 +1033,7 @@ begin
   Result := CheckAttributes;
 
   if not Result then
-    raise ECLPConfigurationError.Create(ErrorInfo)
+    raise ECLPConfigurationError.Create(ErrorInfo) at ReturnAddress
   else
     Result := ProcessCommandLine(ACommandData, ACommandLine);
 end;
