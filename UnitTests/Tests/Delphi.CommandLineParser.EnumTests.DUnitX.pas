@@ -23,10 +23,8 @@ type
     [Test] procedure ParsesMiddleEnumValue;
     [Test] procedure ParsesLastEnumValue;
     [Test] procedure DefaultEnumApplied;
-    // Currently SetValue raises an exception for an unknown enum identifier.
-    // This test pins down the current behavior; consider returning a graceful
-    // parse error in the future.
-    [Test] procedure UnknownEnumValueRaisesException;
+    [Test] procedure UnknownEnumValueFailsGracefully;
+    [Test] procedure UnknownEnumValueSetsInvalidDataError;
   end;
 
 implementation
@@ -79,17 +77,24 @@ begin
   end;
 end;
 
-procedure TEnumTests.UnknownEnumValueRaisesException;
+procedure TEnumTests.UnknownEnumValueFailsGracefully;
 begin
   var LParser := CreateCommandLineParser;
   var LOpts := TEnumOptions.Create;
   try
-    Assert.WillRaise(
-      procedure
-      begin
-        LParser.Parse('-Color:Purple', LOpts);
-      end,
-      Exception);
+    Assert.IsFalse(LParser.Parse('-Color:Purple', LOpts));
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TEnumTests.UnknownEnumValueSetsInvalidDataError;
+begin
+  var LParser := CreateCommandLineParser;
+  var LOpts := TEnumOptions.Create;
+  try
+    LParser.Parse('-Color:Purple', LOpts);
+    Assert.AreEqual(Integer(ekInvalidData), Integer(LParser.ErrorInfo.Kind));
   finally
     LOpts.Free;
   end;

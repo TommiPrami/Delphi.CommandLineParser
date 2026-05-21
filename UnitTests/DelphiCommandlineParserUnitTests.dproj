@@ -114,6 +114,14 @@
         <DCCReference Include="Tests\Delphi.CommandLineParser.InheritanceTests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.ConfigErrorTests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.ParserLifecycleTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.FloatTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.DateTimeTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.RangeTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.SkipTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.HelpSwitchTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.EnvironmentTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.EmptyValueTests.DUnitX.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

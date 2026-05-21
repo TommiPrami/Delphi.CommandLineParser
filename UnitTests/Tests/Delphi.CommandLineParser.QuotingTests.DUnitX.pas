@@ -108,11 +108,10 @@ begin
   var LOpts := TQuoteOptions.Create;
   try
     LOpts.Alpha := 'preset';
-    // -Alpha:"" yields empty parameter value; switch is not marked provided
-    // because the parser skips the SetValue call for empty param values on
-    // non-Boolean switches. Initial value should be preserved.
+    // -Alpha:"" yields an empty value, but the explicit ':' delimiter means
+    // the switch IS provided. For a string switch, that sets the value to ''.
     Assert.IsTrue(LParser.Parse('-Alpha:""', LOpts), LParser.ErrorInfo.Text);
-    Assert.AreEqual('preset', LOpts.Alpha);
+    Assert.AreEqual('', LOpts.Alpha);
   finally
     LOpts.Free;
   end;

@@ -37,23 +37,23 @@ type
   ///    Specifies long name for the switch. If not set, property name is used
   ///    for long name.
   ///
-  ///    A short form of the long name can also be provided which must match the beginning
-  ///    of the long form. In this case, parser will accept shortened versions of the
-  ///    long name, but no shorter than the short form.
-  ///    An example: if 'longName' = 'autotest' and 'shortForm' = 'auto' then the parser
+  ///    An abbreviation of the long name can also be provided which must match the
+  ///    beginning of the long form. In this case the parser will accept shortened
+  ///    versions of the long name, but no shorter than the abbreviation.
+  ///    Example: if 'longName' = 'autotest' and 'abbreviation' = 'auto' then the parser
   ///    will accept 'auto', 'autot', 'autote', 'autotes' and 'autotest', but not 'aut',
-  ///    'au' and 'a'.
+  ///    'au' or 'a'.
   ///
   ///    Multiple long names (alternate switches) can be provided for one entity.
   ///  </summary>
   CLPLongNameAttribute = class(TCustomAttribute)
   strict private
     FLongName : string;
-    FShortForm: string;
+    FAbbreviation: string;
   public
-    constructor Create(const ALongName: string; const AShortForm: string = '');
+    constructor Create(const ALongName: string; const AAbbreviation: string = '');
     property LongName: string read FLongName;
-    property ShortForm: string read FShortForm;
+    property Abbreviation: string read FAbbreviation;
   end;
 
   ///  <summary>
@@ -130,6 +130,64 @@ type
   public
   end;
 
+  ///  <summary>
+  ///    Marks a property to be ignored by the command-line parser. Useful for
+  ///    helper properties on the definition class that should never be exposed
+  ///    on the command line.
+  ///  </summary>
+  CLPSkipAttribute = class(TCustomAttribute)
+  public
+  end;
+
+  ///  <summary>
+  ///    Pre-fills the switch from an environment variable if the variable is
+  ///    set and the switch is not provided on the command line. Precedence
+  ///    (lowest to highest): CLPDefault, CLPEnvironment, command-line value.
+  ///  </summary>
+  CLPEnvironmentAttribute = class(TCustomAttribute)
+  strict private
+    FVariableName: string;
+  public
+    constructor Create(const AVariableName: string);
+    property VariableName: string read FVariableName;
+  end;
+
+  ///  <summary>
+  ///    Marks an enum identifier as illegal as command-line input. Useful for
+  ///    sentinel values such as 'Uninitialized' that exist for internal state
+  ///    but should never be selectable by the user. Stack the attribute to
+  ///    mark multiple identifiers.
+  ///  </summary>
+  CLPIllegalValueAttribute = class(TCustomAttribute)
+  strict private
+    FValue: string;
+  public
+    constructor Create(const AValue: string);
+    property Value: string read FValue;
+  end;
+
+  ///  <summary>
+  ///    Restricts a numeric switch (Integer or Float/Date/Time/DateTime) to a
+  ///    closed range. Bounds are inclusive. Use the constructor overload that
+  ///    matches the underlying property type.
+  ///  </summary>
+  CLPRangeAttribute = class(TCustomAttribute)
+  strict private
+    FMinInt: Int64;
+    FMaxInt: Int64;
+    FMinFloat: Double;
+    FMaxFloat: Double;
+    FIsFloat: Boolean;
+  public
+    constructor Create(const AMin, AMax: Int64); overload;
+    constructor Create(const AMin, AMax: Double); overload;
+    property MinInt: Int64 read FMinInt;
+    property MaxInt: Int64 read FMaxInt;
+    property MinFloat: Double read FMinFloat;
+    property MaxFloat: Double read FMaxFloat;
+    property IsFloat: Boolean read FIsFloat;
+  end;
+
   TCLPErrorKind = (
     // configuration error, will result in exception
     ekPositionalsBadlyDefined, ekNameNotDefined, ekShortNameTooLong, ekLongFormsDontMatch,
@@ -167,11 +225,20 @@ type
     Text: string;
   end;
 
-  TCLPOption = (opIgnoreUnknownSwitches);
+  TCLPOption = (
+    opIgnoreUnknownSwitches,
+    /// <summary>
+    ///   Recognize -h, -?, --help on the command line. When seen, Parse stops
+    ///   processing further switches, skips required-switch validation,
+    ///   returns True, and sets HelpRequested to True. The caller can then
+    ///   render Usage() and exit. Builds-in nothing if not set.
+    /// </summary>
+    opEnableBuiltInHelp);
   TCLPOptions = set of TCLPOption;
 
   ICommandLineParser = interface ['{C9B729D4-3706-46DB-A8A2-1E07E04F497B}']
     function GetErrorInfo: TCLPErrorInfo;
+    function GetHelpRequested: Boolean;
     function GetOptions: TCLPOptions;
     procedure SetOptions(const AValue: TCLPOptions);
     function GetExtension(const ASwitch: string): string;
@@ -179,6 +246,7 @@ type
     function Parse(const ACommandData: TObject): Boolean; overload;
     function Parse(const ACommandLine: string; const ACommandData: TObject): Boolean; overload;
     property ErrorInfo: TCLPErrorInfo read GetErrorInfo;
+    property HelpRequested: Boolean read GetHelpRequested;
     property Options: TCLPOptions read GetOptions write SetOptions;
   end;
 
@@ -187,6 +255,7 @@ type
     FErrorInfo: TCLPErrorInfo;
   public
     constructor Create(const AErrInfo: TCLPErrorInfo);
+    property ErrorInfo: TCLPErrorInfo read FErrorInfo;
   end;
 
   ///  <summary>
@@ -207,7 +276,7 @@ type
 implementation
 
 uses
-  System.Character, System.Classes, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
+  System.Character, System.Classes, System.DateUtils, System.Generics.Collections, System.Generics.Defaults, System.StrUtils;
 
 resourcestring
   SBooleanSwitchCannotAcceptData     = 'Boolean switch cannot accept this data. Use True or False.';
@@ -239,7 +308,7 @@ type
     class function EnumToString<T>(const AEnumValue: T; const AStripLowercasePrefix: Boolean = False): string;
   end;
 
-  TCLPSwitchType = (stString, stInteger, stBoolean, stEnumeration, stStringArray);
+  TCLPSwitchType = (stString, stInteger, stFloat, stBoolean, stEnumeration, stDate, stTime, stDateTime, stStringArray);
 
   TCLPSwitchOption = (soRequired, soPositional, soPositionRest, soExtendable, soFileMustExist, soDirectoryMustExist);
   TCLPSwitchOptions = set of TCLPSwitchOption;
@@ -249,8 +318,8 @@ type
 
   TCLPLongName = record
     LongForm: string;
-    ShortForm: string;
-    constructor Create(const ALongForm, AShortForm: string);
+    Abbreviation: string;
+    constructor Create(const ALongForm, AAbbreviation: string);
   end; { TCLPLongName }
 
   TCLPLongNames = TArray<TCLPLongName>;
@@ -259,8 +328,16 @@ type
   strict private
     FDefaultValue: string;
     FDescription: string;
+    FEnvironmentVariable: string;
+    FHasIntRange: Boolean;
+    FHasFloatRange: Boolean;
+    FIllegalValues: TArray<string>;
     FInstance: TObject;
     FLongNames: TCLPLongNames;
+    FMinInt: Int64;
+    FMaxInt: Int64;
+    FMinFloat: Double;
+    FMaxFloat: Double;
     FName: string;
     FOptions: TCLPSwitchOptions;
     FParamName: string;
@@ -274,15 +351,22 @@ type
   public
     constructor Create(const AInstance: TObject; const APropertyName, AName: string; const ALongNames: TCLPLongNames;
       const ASwitchType: TCLPSwitchType; const APosition: Integer; const AOptions: TCLPSwitchOptions;
-      const ADefaultValue, ADescription, AParamName: string);
+      const ADefaultValue, ADescription, AParamName, AEnvironmentVariable: string);
     function AppendValue(const AValue, ADelim: string; const ADoQuote: Boolean): Boolean;
     function DisplayName: string;
     function GetValue: string;
     function GetValueOrDefault: string;
+    function HasIntRange: Boolean;
+    function HasFloatRange: Boolean;
+    function IsIllegalValue(const AValue: string): Boolean;
     function SetValue(const AValue: string): Boolean;
+    procedure AddIllegalValue(const AValue: string);
     procedure SetBooleanTrue;
+    procedure SetIntRange(const AMin, AMax: Int64);
+    procedure SetFloatRange(const AMin, AMax: Double);
     property DefaultValue: string read FDefaultValue;
     property Description: string read FDescription;
+    property EnvironmentVariable: string read FEnvironmentVariable;
     property LongNames: TCLPLongNames read FLongNames;
     property Name: string read FName;
     property Options: TCLPSwitchOptions read FOptions;
@@ -306,6 +390,7 @@ type
   TCommandLineParser = class(TInterfacedObject, ICommandLineParser)
   strict private
     FErrorInfo: TCLPErrorInfo;
+    FHelpRequested: Boolean;
     FOptions: TCLPOptions;
     FPositionals: TArray<TSwitchData>;
     FSwitchComparer: TStringComparer;
@@ -317,16 +402,18 @@ type
     function FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
     function BuildCommandLineFromParams: string;
     function GetErrorInfo: TCLPErrorInfo; inline;
+    function GetHelpRequested: Boolean;
     function GetOptions: TCLPOptions;
     function GrabNextElement(var ARemaining, AToken: string): Boolean;
-    function IsSwitch(const ASwitchRawValue: string; var AParam: string; var AData: TSwitchData): Boolean;
+    function IsBuiltInHelpToken(const ARawToken: string): Boolean;
+    function IsSwitch(const ASwitchRawValue: string; var AParam: string; var AHasParamDelim: Boolean; var AData: TSwitchData): Boolean;
     function MapPropertyType(const AProp: TRttiProperty): TCLPSwitchType;
     function ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
     function SetError(const AKind: TCLPErrorKind; const ADetail: TCLPErrorDetailed; const AText: string; const APosition: Integer = 0;
       const ASwitchName: string = ''): Boolean;
     procedure AddSwitch(const AInstance: TObject; const APropertyName, AName: string; const ALongNames: TCLPLongNames;
       const ASwitchType: TCLPSwitchType; const APosition: Integer; const AOptions: TCLPSwitchOptions;
-      const ADefaultValue, ADescription, AParamName: string);
+      const ADefaultValue, ADescription, AParamName, AEnvironmentVariable: string);
     procedure ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty);
     procedure ProcessDefinitionClass(const ACommandData: TObject);
     procedure SetOptions(const AValue: TCLPOptions);
@@ -341,6 +428,7 @@ type
     function Parse(const ACommandLine: string; const ACommandData: TObject): Boolean; overload;
     function Usage(const AWrapAtColumn: Integer = 80): TArray<string>;
     property ErrorInfo: TCLPErrorInfo read GetErrorInfo;
+    property HelpRequested: Boolean read GetHelpRequested;
     property Options: TCLPOptions read GetOptions write SetOptions;
   end;
 
@@ -441,12 +529,50 @@ end;
 
 { CLPLongNameAttribute }
 
-constructor CLPLongNameAttribute.Create(const ALongName, AShortForm: string);
+constructor CLPLongNameAttribute.Create(const ALongName, AAbbreviation: string);
 begin
   inherited Create;
 
   FLongName := ALongName;
-  FShortForm := AShortForm;
+  FAbbreviation := AAbbreviation;
+end;
+
+{ CLPEnvironmentAttribute }
+
+constructor CLPEnvironmentAttribute.Create(const AVariableName: string);
+begin
+  inherited Create;
+
+  FVariableName := AVariableName;
+end;
+
+{ CLPIllegalValueAttribute }
+
+constructor CLPIllegalValueAttribute.Create(const AValue: string);
+begin
+  inherited Create;
+
+  FValue := AValue;
+end;
+
+{ CLPRangeAttribute }
+
+constructor CLPRangeAttribute.Create(const AMin, AMax: Int64);
+begin
+  inherited Create;
+
+  FMinInt := AMin;
+  FMaxInt := AMax;
+  FIsFloat := False;
+end;
+
+constructor CLPRangeAttribute.Create(const AMin, AMax: Double);
+begin
+  inherited Create;
+
+  FMinFloat := AMin;
+  FMaxFloat := AMax;
+  FIsFloat := True;
 end;
 
 { CLPDefaultAttribute }
@@ -483,17 +609,17 @@ end;
 
 { TCLPLongName }
 
-constructor TCLPLongName.Create(const ALongForm, AShortForm: string);
+constructor TCLPLongName.Create(const ALongForm, AAbbreviation: string);
 begin
   LongForm := ALongForm;
-  ShortForm := AShortForm;
+  Abbreviation := AAbbreviation;
 end;
 
 { TSwitchData }
 
 constructor TSwitchData.Create(const AInstance: TObject; const APropertyName, AName: string;
   const ALongNames: TCLPLongNames; const ASwitchType: TCLPSwitchType; const APosition: Integer;
-  const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName: string);
+  const AOptions: TCLPSwitchOptions; const ADefaultValue, ADescription, AParamName, AEnvironmentVariable: string);
 begin
   inherited Create;
 
@@ -507,6 +633,7 @@ begin
   FDefaultValue := ADefaultValue;
   FDescription := ADescription;
   FParamName := AParamName;
+  FEnvironmentVariable := AEnvironmentVariable;
 end;
 
 function TSwitchData.AppendValue(const AValue, ADelim: string; const ADoQuote: Boolean): Boolean;
@@ -565,20 +692,28 @@ begin
   LRttiType := LContext.GetType(FInstance.ClassType);
   LProperty := LRttiType.GetProperty(FPropertyName);
 
-  if SwitchType = stEnumeration then
-  begin
-    var LValue := LProperty.GetValue(FInstance);
-
-    Result := GetEnumName(LProperty.PropertyType.Handle, LValue.AsOrdinal);
-  end
-  else if SwitchType = stStringArray then
-  begin
-    var LArray: TArray<string> := LProperty.GetValue(FInstance).AsType<TArray<string>>;
-
-    Result := Result.Join(';', LArray);
-  end
+  case SwitchType of
+    stEnumeration:
+      begin
+        var LValue := LProperty.GetValue(FInstance);
+        Result := GetEnumName(LProperty.PropertyType.Handle, LValue.AsOrdinal);
+      end;
+    stStringArray:
+      begin
+        var LArray: TArray<string> := LProperty.GetValue(FInstance).AsType<TArray<string>>;
+        Result := string.Join(';', LArray);
+      end;
+    stFloat:
+      Result := FloatToStr(LProperty.GetValue(FInstance).AsExtended, TFormatSettings.Invariant);
+    stDate:
+      Result := DateToISO8601(LProperty.GetValue(FInstance).AsExtended, True);
+    stTime:
+      Result := FormatDateTime('hh:nn:ss', LProperty.GetValue(FInstance).AsExtended);
+    stDateTime:
+      Result := DateToISO8601(LProperty.GetValue(FInstance).AsExtended, True);
   else
     Result := LProperty.GetValue(FInstance).AsString;
+  end;
 end;
 
 function TSwitchData.GetValueOrDefault: string;
@@ -587,6 +722,46 @@ begin
 
   if Result.IsEmpty then
     Result := DefaultValue;
+end;
+
+function TSwitchData.HasIntRange: Boolean;
+begin
+  Result := FHasIntRange;
+end;
+
+function TSwitchData.HasFloatRange: Boolean;
+begin
+  Result := FHasFloatRange;
+end;
+
+procedure TSwitchData.SetIntRange(const AMin, AMax: Int64);
+begin
+  FHasIntRange := True;
+  FMinInt := AMin;
+  FMaxInt := AMax;
+end;
+
+procedure TSwitchData.SetFloatRange(const AMin, AMax: Double);
+begin
+  FHasFloatRange := True;
+  FMinFloat := AMin;
+  FMaxFloat := AMax;
+end;
+
+procedure TSwitchData.AddIllegalValue(const AValue: string);
+begin
+  SetLength(FIllegalValues, Length(FIllegalValues) + 1);
+  FIllegalValues[High(FIllegalValues)] := AValue;
+end;
+
+function TSwitchData.IsIllegalValue(const AValue: string): Boolean;
+var
+  LIllegal: string;
+begin
+  for LIllegal in FIllegalValues do
+    if SameText(LIllegal, AValue) then
+      Exit(True);
+  Result := False;
 end;
 
 function TSwitchData.Quote(const AValue: string): string;
@@ -620,7 +795,53 @@ begin
         if LCode <> 0 then
           Exit(False);
 
+        if FHasIntRange and ((LIntegerValue < FMinInt) or (LIntegerValue > FMaxInt)) then
+          Exit(False);
+
         LProperty.SetValue(FInstance, LIntegerValue);
+      end;
+    stFloat:
+      begin
+        var LFloatValue: Double;
+
+        if not TryStrToFloat(AValue, LFloatValue, TFormatSettings.Invariant) then
+          Exit(False);
+
+        if FHasFloatRange and ((LFloatValue < FMinFloat) or (LFloatValue > FMaxFloat)) then
+          Exit(False);
+
+        LProperty.SetValue(FInstance, LFloatValue);
+      end;
+    stDate:
+      begin
+        var LDateValue: TDateTime;
+
+        if TryISO8601ToDate(AValue, LDateValue, True) then
+          LProperty.SetValue(FInstance, TValue.From<TDate>(DateOf(LDateValue)))
+        else if TryStrToDate(AValue, LDateValue, TFormatSettings.Invariant) then
+          LProperty.SetValue(FInstance, TValue.From<TDate>(DateOf(LDateValue)))
+        else
+          Exit(False);
+      end;
+    stTime:
+      begin
+        var LTimeValue: TDateTime;
+
+        if TryStrToTime(AValue, LTimeValue, TFormatSettings.Invariant) then
+          LProperty.SetValue(FInstance, TValue.From<TTime>(TimeOf(LTimeValue)))
+        else
+          Exit(False);
+      end;
+    stDateTime:
+      begin
+        var LDateTimeValue: TDateTime;
+
+        if TryISO8601ToDate(AValue, LDateTimeValue, True) then
+          LProperty.SetValue(FInstance, TValue.From<TDateTime>(LDateTimeValue))
+        else if TryStrToDateTime(AValue, LDateTimeValue, TFormatSettings.Invariant) then
+          LProperty.SetValue(FInstance, TValue.From<TDateTime>(LDateTimeValue))
+        else
+          Exit(False);
       end;
     stBoolean:
       begin
@@ -633,19 +854,20 @@ begin
       end;
     stEnumeration:
       begin
-        if LProperty.IsWritable then
-        begin
-          var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, AValue);
+        if not LProperty.IsWritable then
+          Exit(False);
 
-          if LEnumValue <> -1 then
-          begin
-            var LValue := TValue.FromOrdinal(LProperty.PropertyType.Handle, LEnumValue);
+        if IsIllegalValue(AValue) then
+          Exit(False);
 
-            LProperty.SetValue(FInstance, LValue)
-          end
-          else
-            raise Exception.Create('TSwitchData.SetValue: Unsupported value "' + AValue.QuotedString('"') + ' for ' + FPropertyName);
-        end;
+        var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, AValue);
+
+        if LEnumValue = -1 then
+          Exit(False);
+
+        var LValue := TValue.FromOrdinal(LProperty.PropertyType.Handle, LEnumValue);
+
+        LProperty.SetValue(FInstance, LValue);
       end;
     stStringArray:
       begin
@@ -683,14 +905,14 @@ end;
 
 procedure TCommandLineParser.AddSwitch(const AInstance: TObject; const APropertyName, AName: string; const ALongNames: TCLPLongNames;
   const ASwitchType: TCLPSwitchType; const APosition: Integer; const AOptions: TCLPSwitchOptions;
-  const ADefaultValue, ADescription, AParamName: string);
+  const ADefaultValue, ADescription, AParamName, AEnvironmentVariable: string);
 var
   LSwitchData: TSwitchData;
   LIndex: Integer;
   LLongName: TCLPLongName;
 begin
   LSwitchData := TSwitchData.Create(AInstance, APropertyName, AName, ALongNames, ASwitchType, APosition, AOptions, ADefaultValue,
-    ADescription, AParamName);
+    ADescription, AParamName, AEnvironmentVariable);
 
   FSwitchList.Add(LSwitchData);
 
@@ -701,8 +923,8 @@ begin
   begin
     FSwitchDict.Add(LLongName.LongForm, LSwitchData);
 
-    if LLongName.ShortForm <> '' then
-      for LIndex := Length(LLongName.ShortForm) to Length(LLongName.LongForm) - 1 do
+    if LLongName.Abbreviation <> '' then
+      for LIndex := Length(LLongName.Abbreviation) to Length(LLongName.LongForm) - 1 do
         FSwitchDict.AddOrSetValue(Copy(LLongName.LongForm, 1, LIndex), LSwitchData);
   end;
 end;
@@ -794,7 +1016,7 @@ begin
       else if (LSwitchData.Name <> '') and (Length(LSwitchData.Name) <> 1) then
         Exit(SetError(ekShortNameTooLong, edShortNameTooLong, SShortNameMustBeOneLetterLong, 0, LSwitchData.Name))
       else for LLongName in LSwitchData.LongNames do
-        if (LLongName.ShortForm <> '') and (not StartsText(LLongName.ShortForm, LLongName.LongForm)) then
+        if (LLongName.Abbreviation <> '') and (not StartsText(LLongName.Abbreviation, LLongName.LongForm)) then
           Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, LLongName.LongForm));
 end;
 
@@ -804,6 +1026,10 @@ var
   LStringArray: TArray<string>;
 begin
   Result := fscOk;
+
+  // Nothing to check: the switch wasn't provided and there is no default to validate.
+  if (not ASwitchData.Provided) and (ASwitchData.DefaultValue = '') then
+    Exit;
 
   LStringValue := ASwitchData.GetValueOrDefault;
   LStringArray := SplitArray(LStringValue);
@@ -867,6 +1093,25 @@ begin
   Result := FErrorInfo;
 end;
 
+function TCommandLineParser.GetHelpRequested: Boolean;
+begin
+  Result := FHelpRequested;
+end;
+
+function TCommandLineParser.IsBuiltInHelpToken(const ARawToken: string): Boolean;
+const
+  CHelpTokens: array [0..{$IFDEF MSWINDOWS}5{$ELSE}2{$ENDIF}] of string = (
+    '-h', '-?', '--help'
+    {$IFDEF MSWINDOWS}, '/h', '/?', '/help'{$ENDIF});
+var
+  LToken: string;
+begin
+  for LToken in CHelpTokens do
+    if SameText(ARawToken, LToken) then
+      Exit(True);
+  Result := False;
+end;
+
 function TCommandLineParser.GetExtension(const ASwitch: string): string;
 var
   LSwitchData: TSwitchData;
@@ -926,7 +1171,7 @@ begin
   Result := True;
 end;
 
-function TCommandLineParser.IsSwitch(const ASwitchRawValue: string; var AParam: string; var AData: TSwitchData): Boolean;
+function TCommandLineParser.IsSwitch(const ASwitchRawValue: string; var AParam: string; var AHasParamDelim: Boolean; var AData: TSwitchData): Boolean;
 var
   LDelimPos: Integer;
   LFirstDelimPos: Integer;
@@ -937,6 +1182,7 @@ var
 begin
   Result := False;
   AParam := '';
+  AHasParamDelim := False;
 
   LSwitchBody := ASwitchRawValue;
   for LSwitchDelim in FSwitchDelims do
@@ -967,6 +1213,7 @@ begin
 
     if LFirstDelimPos > 0 then
     begin
+      AHasParamDelim := True;
       AParam := LName;
       Delete(AParam, 1, LFirstDelimPos);
       LName := Copy(LName, 1, LFirstDelimPos - 1);
@@ -1004,6 +1251,15 @@ begin
   case AProp.PropertyType.TypeKind of
     tkInteger, tkInt64:
       Result := stInteger;
+    tkFloat:
+      if AProp.PropertyType.Handle = TypeInfo(TDate) then
+        Result := stDate
+      else if AProp.PropertyType.Handle = TypeInfo(TTime) then
+        Result := stTime
+      else if AProp.PropertyType.Handle = TypeInfo(TDateTime) then
+        Result := stDateTime
+      else
+        Result := stFloat;
     tkEnumeration:
       if AProp.PropertyType.Handle = TypeInfo(Boolean) then
         Result := stBoolean
@@ -1027,6 +1283,8 @@ end;
 
 function TCommandLineParser.Parse(const ACommandLine: string; const ACommandData: TObject): Boolean;
 begin
+  FErrorInfo := Default(TCLPErrorInfo);
+  FHelpRequested := False;
   FSwitchDict.Clear;
   SetLength(FPositionals, 0);
   FSwitchList.Clear;
@@ -1048,25 +1306,37 @@ end;
 
 procedure TCommandLineParser.ProcessAttributes(const AInstance: TObject; const AProp: TRttiProperty);
 
-  procedure AddLongName(const ALongForm, AShortForm: string; var ALongNames: TCLPLongNames);
+  procedure AddLongName(const ALongForm, AAbbreviation: string; var ALongNames: TCLPLongNames);
   begin
     SetLength(ALongNames, Length(ALongNames) + 1);
 
-    ALongNames[High(ALongNames)] := TCLPLongName.Create(ALongForm, AShortForm);
+    ALongNames[High(ALongNames)] := TCLPLongName.Create(ALongForm, AAbbreviation);
   end;
 
 var
   LAttribute: TCustomAttribute;
   LDefault: string;
   LDescription: string;
+  LEnvironmentVariable: string;
+  LIllegalValues: TArray<string>;
   LLongNames: TCLPLongNames;
   LShortName: string;
   LOptions: TCLPSwitchOptions;
   LParamName: string;
   LPosition: Integer;
+  LRangeAttr: CLPRangeAttribute;
 begin
+  // A CLPSkip attribute on the property means "ignore this property entirely".
+  for LAttribute in AProp.GetAttributes do
+    if LAttribute is CLPSkipAttribute then
+      Exit;
+
+  LRangeAttr := nil;
+  SetLength(LIllegalValues, 0);
+
   LShortName := '';
   LDescription := '';
+  LEnvironmentVariable := '';
   LParamName := CLPDescriptionAttribute.DefaultValue;
   LOptions := [];
   LPosition := 0;
@@ -1078,7 +1348,7 @@ begin
     if LAttribute is CLPNameAttribute then
       LShortName := CLPNameAttribute(LAttribute).Name
     else if LAttribute is CLPLongNameAttribute then
-      AddLongName(CLPLongNameAttribute(LAttribute).LongName, CLPLongNameAttribute(LAttribute).ShortForm, LLongNames)
+      AddLongName(CLPLongNameAttribute(LAttribute).LongName, CLPLongNameAttribute(LAttribute).Abbreviation, LLongNames)
     else if LAttribute is CLPDefaultAttribute then
       LDefault := CLPDefaultAttribute(LAttribute).DefaultValue
     else if LAttribute is CLPDescriptionAttribute then
@@ -1103,6 +1373,15 @@ begin
     begin
       Include(LOptions, soPositional);
       Include(LOptions, soPositionRest);
+    end
+    else if LAttribute is CLPEnvironmentAttribute then
+      LEnvironmentVariable := CLPEnvironmentAttribute(LAttribute).VariableName
+    else if LAttribute is CLPRangeAttribute then
+      LRangeAttr := CLPRangeAttribute(LAttribute)
+    else if LAttribute is CLPIllegalValueAttribute then
+    begin
+      SetLength(LIllegalValues, Length(LIllegalValues) + 1);
+      LIllegalValues[High(LIllegalValues)] := CLPIllegalValueAttribute(LAttribute).Value;
     end;
   end; //for attr
 
@@ -1110,7 +1389,20 @@ begin
     AddLongName(AProp.Name, '', LLongNames);
 
   AddSwitch(AInstance, AProp.Name, Trim(LShortName), LLongNames, MapPropertyType(AProp), LPosition,
-    LOptions, LDefault, Trim(LDescription), Trim(LParamName));
+    LOptions, LDefault, Trim(LDescription), Trim(LParamName), Trim(LEnvironmentVariable));
+
+  // Range bounds, if any, apply to the just-added switch (last in FSwitchList).
+  if Assigned(LRangeAttr) then
+  begin
+    if LRangeAttr.IsFloat then
+      FSwitchList.Last.SetFloatRange(LRangeAttr.MinFloat, LRangeAttr.MaxFloat)
+    else
+      FSwitchList.Last.SetIntRange(LRangeAttr.MinInt, LRangeAttr.MaxInt);
+  end;
+
+  // Illegal-value list (CLPIllegalValue attributes) applies to the same switch.
+  for var LIllegal in LIllegalValues do
+    FSwitchList.Last.AddIllegalValue(LIllegal);
 end;
 
 function TCommandLineParser.ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
@@ -1119,6 +1411,7 @@ var
   LCommandLine: string;
   LCurrentRawParameter: string;
   LParamValue: string; // Value extracted from after the parameter delimiter, e.g. 'foo' in '-name:foo'.
+  LHasParamDelim: Boolean;
   LPosition: Integer;
 begin
   Result := True;
@@ -1127,12 +1420,28 @@ begin
     if LSwitchData.DefaultValue <> '' then
       LSwitchData.SetValue(LSwitchData.DefaultValue);
 
+  // Env-var fallback: applied AFTER defaults but BEFORE command-line tokens,
+  // so env vars override defaults and the command line overrides env vars.
+  for LSwitchData in FSwitchList do
+    if LSwitchData.EnvironmentVariable <> '' then
+    begin
+      var LEnvValue := GetEnvironmentVariable(LSwitchData.EnvironmentVariable);
+      if LEnvValue <> '' then
+        LSwitchData.SetValue(LEnvValue);
+    end;
+
   LPosition := 1;
   LCommandLine := ACommandLine;
 
   while GrabNextElement(LCommandLine, LCurrentRawParameter) do
   begin
-    if IsSwitch(LCurrentRawParameter, LParamValue, LSwitchData) then
+    if (opEnableBuiltInHelp in FOptions) and IsBuiltInHelpToken(LCurrentRawParameter) then
+    begin
+      FHelpRequested := True;
+      Exit(True);
+    end;
+
+    if IsSwitch(LCurrentRawParameter, LParamValue, LHasParamDelim, LSwitchData) then
     begin
       if not Assigned(LSwitchData) then
         if opIgnoreUnknownSwitches in FOptions then
@@ -1159,7 +1468,11 @@ begin
             Exit(SetError(ekInvalidData, edBooleanWithData, SBooleanSwitchCannotAcceptData, 0, LCurrentRawParameter));
         end;
       end
-      else if LParamValue <> '' then
+      // A non-Boolean switch with an explicit '=' or ':' delimiter is treated
+      // as "provided" even when the value is empty — SetValue is called so the
+      // property is set to '' (for strings) or a parse error fires (for
+      // numeric/enum types).
+      else if (LParamValue <> '') or LHasParamDelim then
         if not LSwitchData.SetValue(LParamValue) then
           Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, LCurrentRawParameter));
     end
@@ -1185,41 +1498,29 @@ begin
     end;
   end; //while s <> ''
 
-  for LSwitchData in FPositionals do
+  // Single post-parse validation pass. FSwitchList contains every switch
+  // (positional and named), so one loop is enough — the error kind is picked
+  // based on whether the switch is positional.
+  for LSwitchData in FSwitchList do
   begin
     if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
-      Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, LSwitchData.Position,
-        LSwitchData.DisplayName))
-    else if (soFileMustExist in LSwitchData.Options) or (soDirectoryMustExist in LSwitchData.Options) then
     begin
-      if LSwitchData.SwitchType in [stString, stStringArray] then
-      begin
-        case FileSystemCheck(LSwitchData) of
-          fscFileMissing: Exit(SetError(ekFileDoesNotExist, edFileDoesNotExist, SFileDoesNotExist, LSwitchData.Position,
-            LSwitchData.DisplayName));
-          fscDirectoryMissing: Exit(SetError(ekDirectoryDoesNotExist, edDirectoryDoesNotExist, SDirectoryDoesNotExist, LSwitchData.Position,
-            LSwitchData.DisplayName));
-        end;
-      end
+      if soPositional in LSwitchData.Options then
+        Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided,
+          LSwitchData.Position, LSwitchData.DisplayName))
       else
-        Exit(SetError(ekWrongDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist,
-          SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.DisplayName));
-    end;
-  end;
-
-  for LSwitchData in FSwitchlist do
-  begin
-    if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
-      Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, LSwitchData.DisplayName))
+        Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided,
+          0, LSwitchData.DisplayName));
+    end
     else if (soFileMustExist in LSwitchData.Options) or (soDirectoryMustExist in LSwitchData.Options) then
     begin
       if LSwitchData.SwitchType in [stString, stStringArray] then
       begin
         case FileSystemCheck(LSwitchData) of
-          fscFileMissing: Exit(SetError(ekFileDoesNotExist, edFileDoesNotExist, SFileDoesNotExist, LSwitchData.Position,
-            LSwitchData.DisplayName));
-          fscDirectoryMissing: Exit(SetError(ekDirectoryDoesNotExist, edDirectoryDoesNotExist, SDirectoryDoesNotExist, LSwitchData.Position,
-            LSwitchData.DisplayName));
+          fscFileMissing: Exit(SetError(ekFileDoesNotExist, edFileDoesNotExist, SFileDoesNotExist,
+            LSwitchData.Position, LSwitchData.DisplayName));
+          fscDirectoryMissing: Exit(SetError(ekDirectoryDoesNotExist, edDirectoryDoesNotExist, SDirectoryDoesNotExist,
+            LSwitchData.Position, LSwitchData.DisplayName));
         end;
       end
       else

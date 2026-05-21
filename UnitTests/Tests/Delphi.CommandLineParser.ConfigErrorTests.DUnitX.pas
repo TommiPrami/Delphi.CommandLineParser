@@ -6,12 +6,16 @@ uses
   System.SysUtils, DUnitX.TestFramework, Delphi.CommandLineParser;
 
 type
+  TUnsupportedSet = set of (usA, usB, usC);
+
   TUnsupportedTypeOpts = class
   strict private
-    FValue: Double;
+    FFlags: TUnsupportedSet;
   public
-    [CLPLongName('Value'), CLPDescription('Value', '<float>'), CLPDefault('0')]
-    property Value: Double read FValue write FValue;
+    // Set types have no meaningful command-line representation; the parser
+    // should reject them as unsupported during ProcessAttributes.
+    [CLPLongName('Flags'), CLPDescription('Flags', '<set>')]
+    property Flags: TUnsupportedSet read FFlags write FFlags;
   end;
 
   TUnsupportedArrayOpts = class

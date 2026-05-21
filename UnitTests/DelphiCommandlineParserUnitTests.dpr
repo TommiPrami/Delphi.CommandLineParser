@@ -38,7 +38,15 @@ uses
   Delphi.CommandLineParser.ErrorInfoTests.DUnitX in 'Tests\Delphi.CommandLineParser.ErrorInfoTests.DUnitX.pas',
   Delphi.CommandLineParser.InheritanceTests.DUnitX in 'Tests\Delphi.CommandLineParser.InheritanceTests.DUnitX.pas',
   Delphi.CommandLineParser.ConfigErrorTests.DUnitX in 'Tests\Delphi.CommandLineParser.ConfigErrorTests.DUnitX.pas',
-  Delphi.CommandLineParser.ParserLifecycleTests.DUnitX in 'Tests\Delphi.CommandLineParser.ParserLifecycleTests.DUnitX.pas';
+  Delphi.CommandLineParser.ParserLifecycleTests.DUnitX in 'Tests\Delphi.CommandLineParser.ParserLifecycleTests.DUnitX.pas',
+  Delphi.CommandLineParser.FloatTests.DUnitX in 'Tests\Delphi.CommandLineParser.FloatTests.DUnitX.pas',
+  Delphi.CommandLineParser.DateTimeTests.DUnitX in 'Tests\Delphi.CommandLineParser.DateTimeTests.DUnitX.pas',
+  Delphi.CommandLineParser.RangeTests.DUnitX in 'Tests\Delphi.CommandLineParser.RangeTests.DUnitX.pas',
+  Delphi.CommandLineParser.SkipTests.DUnitX in 'Tests\Delphi.CommandLineParser.SkipTests.DUnitX.pas',
+  Delphi.CommandLineParser.HelpSwitchTests.DUnitX in 'Tests\Delphi.CommandLineParser.HelpSwitchTests.DUnitX.pas',
+  Delphi.CommandLineParser.EnvironmentTests.DUnitX in 'Tests\Delphi.CommandLineParser.EnvironmentTests.DUnitX.pas',
+  Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX in 'Tests\Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX.pas',
+  Delphi.CommandLineParser.EmptyValueTests.DUnitX in 'Tests\Delphi.CommandLineParser.EmptyValueTests.DUnitX.pas';
 
 { keep comment here to protect the following conditional from being removed by the IDE when adding a unit }
 {$IFNDEF TESTINSIGHT}
