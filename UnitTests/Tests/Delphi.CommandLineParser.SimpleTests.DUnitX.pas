@@ -112,7 +112,6 @@ begin
     Assert.IsTrue(LCommandLineParser.Options = []);
   finally
     LCommandLineParser := nil;
-    FreeCommandLineParser;
   end;
 
   Assert.Pass('If no exceptions, all should be OK');
@@ -137,7 +136,6 @@ begin
   finally
     LOptions.Free;
     LCommandLineParser := nil;
-    FreeCommandLineParser;
   end;
 end;
 
@@ -162,7 +160,6 @@ begin
   finally
     LOptions.Free;
     LCommandLineParser := nil;
-    FreeCommandLineParser;
   end;
 
   LCommandLineParser := CreateCommandLineParser;
@@ -173,7 +170,6 @@ begin
   finally
     LOptions.Free;
     LCommandLineParser := nil;
-    FreeCommandLineParser;
   end;
 
   LCommandLineParser := CreateCommandLineParser;
@@ -184,8 +180,7 @@ begin
   finally
     LOptions.Free;
     LCommandLineParser := nil;
-    FreeCommandLineParser;
-  end;
+ end;
 end;
 
 procedure TCommandLineParserSimpleTestsDUnitX.SimpleNonDefaultEqualSeparatorTest;
@@ -203,7 +198,6 @@ begin
   finally
     LOptions.Free;
     LCommandLineParser := nil;
-    FreeCommandLineParser;
   end;
 end;
 
@@ -227,7 +221,6 @@ begin
   finally
     LOptions.Free;
     LCommandLineParser := nil;
-    FreeCommandLineParser;
   end;
 end;
 
@@ -266,7 +259,6 @@ begin
   finally
     LOptions.Free;
     LCommandLineParser := nil;
-    FreeCommandLineParser;
   end;
 end;
 
