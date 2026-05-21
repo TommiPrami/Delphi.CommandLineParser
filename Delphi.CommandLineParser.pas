@@ -265,7 +265,6 @@ type
     FPosition: Integer;
     FPropertyName: string;
     FProvided: Boolean;
-    FShortLongForm: string;
     FSwitchType: TCLPSwitchType;
   strict protected
     function Quote(const AValue: string): string;
@@ -274,6 +273,7 @@ type
       const ASwitchType: TCLPSwitchType; const APosition: Integer; const AOptions: TCLPSwitchOptions;
       const ADefaultValue, ADescription, AParamName: string);
     function AppendValue(const AValue, ADelim: string; const ADoQuote: Boolean): Boolean;
+    function DisplayName: string;
     function GetValue: string;
     function GetValueOrDefault: string;
     function SetValue(const AValue: string): Boolean;
@@ -288,13 +288,12 @@ type
     property Position: Integer read FPosition write FPosition;
     property PropertyName: string read FPropertyName;
     property Provided: Boolean read FProvided;
-    property ShortLongForm: string read FShortLongForm;
     property SwitchType: TCLPSwitchType read FSwitchType;
   end;
 
 const
   {$IFDEF MSWINDOWS}
-    FSwitchDelims: array [0..2] of string = ('-', '/', '--');
+    FSwitchDelims: array [0..2] of string = ('--', '-', '/');
   {$ELSE}
     FSwitchDelims: array [0..1] of string = ('--', '-');
   {$ENDIF}
@@ -370,18 +369,14 @@ begin
 
   if AStripLowercasePrefix and not Result.IsEmpty then
   begin
-    var LIndex: Integer := 0;
+    var LIndex: Integer := 1;
     var LResultLength := Length(Result);
 
-    while LIndex <= LResultLength do
-    begin
+    while (LIndex <= LResultLength) and Result[LIndex].IsLower do
       Inc(LIndex);
 
-      if not Result[LIndex].IsLower then
-        Break;
-    end;
-
-    Result := Copy(Result, LIndex, LResultLength);
+    if LIndex > 1 then
+      Result := Copy(Result, LIndex, LResultLength - LIndex + 1);
   end;
 end;
 
@@ -503,7 +498,6 @@ begin
   FPropertyName := APropertyName;
   FName := AName;
   FLongNames := ALongNames;
-  FShortLongForm := ShortLongForm;
   FSwitchType := ASwitchType;
   FPosition := APosition;
   FOptions := AOptions;
@@ -527,6 +521,18 @@ begin
     LStringValue := LStringValue + AValue;
 
   Result := SetValue(LStringValue);
+end;
+
+function TSwitchData.DisplayName: string;
+begin
+  if Length(FLongNames) > 0 then
+    Result := FLongNames[0].LongForm
+  else if FName <> '' then
+    Result := FName
+  else if FPropertyName <> '' then
+    Result := FPropertyName
+  else
+    Result := IntToStr(FPosition);
 end;
 
 procedure TSwitchData.Enable;
@@ -558,16 +564,9 @@ begin
 
   if SwitchType = stEnumeration then
   begin
-    var LEnumValue: Integer := GetEnumValue(LProperty.PropertyType.Handle, FPropertyName);
+    var LValue := LProperty.GetValue(FInstance);
 
-    if LEnumValue <> -1 then
-    begin
-      var LValue := TValue.FromOrdinal(LProperty.PropertyType.Handle, LEnumValue);
-
-      Result := LProperty.GetValue(FInstance).AsString
-    end
-    else
-      Result := '';
+    Result := GetEnumName(LProperty.PropertyType.Handle, LValue.AsOrdinal);
   end
   else if SwitchType = stStringDynArray then
   begin
@@ -622,8 +621,12 @@ begin
       end;
     stBoolean:
       begin
-        if TryStrToBool(AValue, Result) then
-          LProperty.SetValue(FInstance, Result);
+        var LBoolValue: Boolean;
+
+        if TryStrToBool(AValue, LBoolValue) then
+          LProperty.SetValue(FInstance, LBoolValue)
+        else
+          Exit(False);
       end;
     stEnumeration:
       begin
@@ -755,7 +758,7 @@ begin
       end;
 
       if not (soRequired in LSwitchData.Options) then
-        LHasOptional := False
+        LHasOptional := True
       else if LHasOptional then
         Exit(SetError(ekPositionalsBadlyDefined, edRequiredAfterOptional, SRequiredPositionalParametersMust, LSwitchData.Position));
     end;
@@ -824,6 +827,9 @@ begin
 
   for kv in FSwitchDict do
   begin
+    if not (soExtendable in kv.Value.Options) then
+      Continue;
+
     if ASwitchName.StartsWith(kv.Key, True) then
     begin
       AData := kv.Value;
@@ -876,10 +882,10 @@ begin
   Result := FOptions;
 end;
 
-// TODO: Rename parameters
 function TCommandLineParser.GrabNextElement(var s, el: string): Boolean;
 var
-  LPosition: Integer;
+  LIndex: Integer;
+  LInQuote: Boolean;
 begin
   el := '';
   s := TrimLeft(s);
@@ -887,39 +893,35 @@ begin
   if s = '' then
     Exit(False);
 
-  if s[1] = '"' then
+  LInQuote := False;
+  LIndex := 1;
+
+  while LIndex <= Length(s) do
   begin
-    repeat
-      LPosition := PosEx('"', s, 2);
+    if s[LIndex] = '"' then
+    begin
+      if LInQuote and (LIndex < Length(s)) and (s[LIndex + 1] = '"') then
+      begin
+        // Escaped quote inside a quoted region: emit a single quote and skip both.
+        el := el + '"';
+        Inc(LIndex, 2);
+        Continue;
+      end;
 
-      if LPosition <= 0 then //unterminated quote
-        LPosition := Length(s);
+      LInQuote := not LInQuote;
+    end
+    else if (s[LIndex] = ' ') and not LInQuote then
+      Break
+    else
+      el := el + s[LIndex];
 
-      el := el + Copy(s, 1, LPosition);
-      Delete(s, 1, LPosition);
-    until (s = '') or (s[1] <> '"');
-
-    Delete(el, 1, 1);
-
-    if el[Length(el)] = '"' then
-      Delete(el, Length(el), 1);
-
-    el := StringReplace(el, '""', '"', [rfReplaceAll]);
-  end
-  else 
-  begin
-    LPosition := Pos(' ', s);
-
-    if LPosition <= 0 then //last element
-      LPosition := Length(s) + 1;
-
-    el := Copy(s, 1, LPosition - 1);
-
-    Delete(s, 1, LPosition);
+    Inc(LIndex);
   end;
 
+  Delete(s, 1, LIndex);
+
   Result := True;
-end; { TCommandLineParser.GrabNextElement }
+end;
 
 function TCommandLineParser.IsSwitch(const ASwitchRawValue: string; var AParam: string; var AData: TSwitchData): Boolean;
 var
@@ -1008,7 +1010,9 @@ begin
       Result := stString;
     tkDynArray:
       begin
-        if APropertyRttiType.TypeKind = tkChar then
+        var LArrayType := AProp.PropertyType as TRttiDynamicArrayType;
+
+        if LArrayType.ElementType.TypeKind in [tkUString, tkLString, tkWString, tkString] then
           Result := stStringDynArray
         else
           RaiseUnsupportedPropertyType(AProp, Result);
@@ -1183,42 +1187,42 @@ begin
   begin
     if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
       Exit(SetError(ekMissingPositional, edMissingRequiredParameter, SRequiredParameterWasNotProvided, LSwitchData.Position,
-        LSwitchData.LongNames[0].LongForm))
+        LSwitchData.DisplayName))
     else if (soFileMustExist in LSwitchData.Options) or (soDirectoryMustExist in LSwitchData.Options) then
     begin
       if LSwitchData.SwitchType in [stString, stStringDynArray] then
       begin
         case FileSystemCheck(LSwitchData) of
           soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position,
-            LSwitchData.LongNames[0].LongForm));
+            LSwitchData.DisplayName));
           soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position,
-            LSwitchData.LongNames[0].LongForm));
+            LSwitchData.DisplayName));
         end;
       end
       else
         Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist,
-          SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+          SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.DisplayName));
     end;
   end;
 
   for LSwitchData in FSwitchlist do
   begin
     if (soRequired in LSwitchData.Options) and (not LSwitchData.Provided) then
-      Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, LSwitchData.LongNames[0].LongForm))
+      Exit(SetError(ekMissingNamed, edMissingRequiredSwitch, SRequiredSwitchWasNotProvided, 0, LSwitchData.DisplayName))
     else if (soFileMustExist in LSwitchData.Options) or (soDirectoryMustExist in LSwitchData.Options) then
     begin
       if LSwitchData.SwitchType in [stString, stStringDynArray] then
       begin
         case FileSystemCheck(LSwitchData) of
           soFileMustExist: Exit(SetError(ekFileDoNotExist, edFileDoNotExist, SFileDoNotExist, LSwitchData.Position,
-            LSwitchData.LongNames[0].LongForm));
+            LSwitchData.DisplayName));
           soDirectoryMustExist: Exit(SetError(ekDirectoryDoNotExist, edDirectoryDoNotExist, SDirectoryDoNotExist, LSwitchData.Position,
-            LSwitchData.LongNames[0].LongForm));
+            LSwitchData.DisplayName));
         end;
       end
       else
         Exit(SetError(ekWronDataTypeForFileOrDirectoryMustExist, edWrongDataTypeForFileOrDirectoryMustExist,
-          SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.LongNames[0].LongForm));
+          SWrongDataTypeForFileOrDirectoryMustExist, LSwitchData.Position, LSwitchData.DisplayName));
     end;
   end;
 end;
