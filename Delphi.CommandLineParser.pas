@@ -9,7 +9,7 @@ uses
   System.RTTI, System.SysUtils, System.TypInfo;
 
 type
-   {TODO: Add Skip (etc) attribute, to parser just skip the property all to gether, so there could be properties that
+   {TODO: Add Skip (etc) attribute, to parser just skip the property all together, so there could be properties that
           are helpers for App to use, but they are not (never ever) used from the command line. }
   { TODO: Illegal values to the parser directly, that are syntactically legal parameters, but not logical for use.
 
