@@ -40,6 +40,8 @@ type
     [Test] procedure RecursiveAtTokenInsideFileRejected;
     [Test] procedure NoResponseFileLeavesCommandLineUnchanged;
     [Test] procedure ErrorKindIsResponseFile;
+    // #10: response files are loaded as UTF-8 (without BOM) deterministically.
+    [Test] procedure Utf8ResponseFileWithoutBomDecodedCorrectly;
   end;
 
 implementation
@@ -200,6 +202,26 @@ begin
     LParser.Parse('@Z:\missing.rsp', LOpts);
     Assert.AreEqual(Integer(ekResponseFile), Integer(LParser.ErrorInfo.Kind));
     Assert.AreEqual(Integer(edResponseFileNotFound), Integer(LParser.ErrorInfo.Detailed));
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TResponseFileTests.Utf8ResponseFileWithoutBomDecodedCorrectly;
+begin
+  // Write the file as raw UTF-8 bytes WITHOUT a BOM. Before the fix, the parser
+  // let TStringList.LoadFromFile fall back to the system ANSI codepage when no
+  // BOM was present, so a multi-byte UTF-8 character (e.g. 'é' = $C3 $A9) was
+  // mis-decoded into two garbage characters. The fix loads with TEncoding.UTF8
+  // as the explicit default, so non-ASCII values round-trip correctly.
+  FTempFile := TPath.Combine(TPath.GetTempPath, 'clpparser_rsp_' + TPath.GetGUIDFileName + '.txt');
+  TFile.WriteAllBytes(FTempFile, TEncoding.UTF8.GetBytes('-Name:café'));
+
+  var LParser := CreateCommandLineParser;
+  var LOpts := TRspOptions.Create;
+  try
+    Assert.IsTrue(LParser.Parse('@' + FTempFile, LOpts), LParser.ErrorInfo.Text);
+    Assert.AreEqual('café', LOpts.Name);
   finally
     LOpts.Free;
   end;

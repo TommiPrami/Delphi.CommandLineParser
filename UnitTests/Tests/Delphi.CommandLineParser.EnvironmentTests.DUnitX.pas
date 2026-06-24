@@ -20,6 +20,18 @@ type
     property FromEnvWithDefault: string read FFromEnvWithDefault write FFromEnvWithDefault;
   end;
 
+  // Integer switch fed from an environment variable. Used to prove that an
+  // environment value that cannot be parsed is reported as an error rather
+  // than silently dropped.
+  TEnvIntOptions = class
+  strict private
+    FNumber: Integer;
+  public
+    [CLPLongName('Number'), CLPEnvironment('CLP_TEST_NUMBER'),
+     CLPDescription('Number', '<int>'), CLPDefault('0')]
+    property Number: Integer read FNumber write FNumber;
+  end;
+
   [TestFixture]
   TEnvironmentTests = class(TObject)
   private
@@ -31,6 +43,10 @@ type
     [Test] procedure EnvVarOverridesDefault;
     [Test] procedure DefaultUsedWhenEnvVarUnset;
     [Test] procedure UnsetEnvVarIsIgnored;
+    // #3: invalid environment value must NOT be silently swallowed.
+    [Test] procedure InvalidEnvVarValueFailsParse;
+    [Test] procedure InvalidEnvVarValueReportsInvalidData;
+    [Test] procedure ValidEnvVarIntegerStillParses;
   end;
 
 implementation
@@ -126,6 +142,60 @@ begin
     Assert.AreEqual('', LOpts.FromEnv);
   finally
     LOpts.Free;
+  end;
+end;
+
+procedure TEnvironmentTests.InvalidEnvVarValueFailsParse;
+begin
+  // CLP_TEST_NUMBER feeds an Integer switch. 'notanumber' cannot be parsed.
+  // The old code ignored the failed SetValue and Parse "succeeded" with the
+  // default. The contract now is: this is a data error, exactly as if the same
+  // bad value had been typed on the command line.
+  SetEnvVar('CLP_TEST_NUMBER', 'notanumber');
+  try
+    var LParser := CreateCommandLineParser;
+    var LOpts := TEnvIntOptions.Create;
+    try
+      Assert.IsFalse(LParser.Parse('', LOpts));
+    finally
+      LOpts.Free;
+    end;
+  finally
+    UnsetEnvVar('CLP_TEST_NUMBER');
+  end;
+end;
+
+procedure TEnvironmentTests.InvalidEnvVarValueReportsInvalidData;
+begin
+  SetEnvVar('CLP_TEST_NUMBER', 'notanumber');
+  try
+    var LParser := CreateCommandLineParser;
+    var LOpts := TEnvIntOptions.Create;
+    try
+      LParser.Parse('', LOpts);
+      Assert.AreEqual(Integer(ekInvalidData), Integer(LParser.ErrorInfo.Kind));
+    finally
+      LOpts.Free;
+    end;
+  finally
+    UnsetEnvVar('CLP_TEST_NUMBER');
+  end;
+end;
+
+procedure TEnvironmentTests.ValidEnvVarIntegerStillParses;
+begin
+  SetEnvVar('CLP_TEST_NUMBER', '123');
+  try
+    var LParser := CreateCommandLineParser;
+    var LOpts := TEnvIntOptions.Create;
+    try
+      Assert.IsTrue(LParser.Parse('', LOpts), LParser.ErrorInfo.Text);
+      Assert.AreEqual(123, LOpts.Number);
+    finally
+      LOpts.Free;
+    end;
+  finally
+    UnsetEnvVar('CLP_TEST_NUMBER');
   end;
 end;
 

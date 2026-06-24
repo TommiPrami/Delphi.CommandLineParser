@@ -123,6 +123,9 @@
         <DCCReference Include="Tests\Delphi.CommandLineParser.IllegalEnumValueTests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.EmptyValueTests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.ResponseFileTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.Int64Tests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.InvalidDefaultTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.UsageTests.DUnitX.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
