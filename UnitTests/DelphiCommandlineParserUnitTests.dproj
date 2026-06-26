@@ -4,7 +4,7 @@
         <ProjectVersion>20.4</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Debug - TestInsight</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">DelphiCommandlineParserUnitTests</ProjectName>
         <TargetedPlatforms>1</TargetedPlatforms>
@@ -35,6 +35,19 @@
         <Cfg_1>true</Cfg_1>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug - TestInsight' or '$(Cfg_3)'!=''">
+        <Cfg_3>true</Cfg_3>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_3)'=='true') or '$(Cfg_3_Win32)'!=''">
+        <Cfg_3_Win32>true</Cfg_3_Win32>
+        <CfgParent>Cfg_3</CfgParent>
+        <Cfg_3>true</Cfg_3>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
         <Cfg_2>true</Cfg_2>
         <CfgParent>Base</CfgParent>
@@ -56,7 +69,6 @@
         <SanitizedProjectName>DelphiCommandlineParserUnitTests</SanitizedProjectName>
         <VerInfo_Locale>1035</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <DCC_Define>TESTINSIGHT;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>vclwinx;STComponents.D12.Runtime;fmx;vclie;DbxCommonDriver;bindengine;IndyIPCommon;VCLRESTComponents;FireDACCommonODBC;OpenTools.Common;FireDACCommonDriver;appanalytics;IndyProtocols;vclx;Skia.Package.RTL;THComponents.D12.Runtime;IndyIPClient;dbxcds;vcledge;bindcompvclwinx;TextEditor.Delphi.Athens.Runtime;bindcompfmx;crcontrols290;inetdb;dacvcl290;FireDACSqliteDriver;DbxClientDriver;GR32_R;JclVcl;soapmidas;vclactnband;fmxFireDAC;dbexpress;Jcl;OpenTools.UsesCleaner;DBXMySQLDriver;VclSmp;inet;OpenTools.CodeSorter;vcltouch;fmxase;dbrtl;Skia.Package.FMX;fmxdae;OpenTools.DCU32;STLisenssit.D12.Runtime;FireDACMSAccDriver;AQPD12;CustomIPTransport;QR506RunD12;JclDeveloperTools;vcldsnap;DBXInterBaseDriver;IndySystem;OpenTools.UsesFormatter;Jedi.D12.Runtime;Skia.Package.VCL;vcldb;STCommon.D12.Runtime;VirtualTreesR;JclContainers;vclFireDAC;EhLib.Delphi.Athens.Runtime;bindcomp;FireDACCommon;RVQRWrapperDAthens;inetstn;IndyCore;RESTBackendComponents;bindcompdbx;rtl;FireDACMySQLDriver;STDualList.D12.Runtime;FireDACADSDriver;ibdac290;RESTComponents;DBXSqliteDriver;vcl;IndyIPServer;dsnapxml;dsnapcon;adortl;dac290;FixInsight_12;vclimg;Jedi.D12.Designtime;OpenTools.PropertyEditors;FireDACPgDriver;FireDAC;inetdbxpress;xmlrtl;tethering;bindcompvcl;dsnap;CloudService;fmxobj;bindcompvclsmp;SVGIconImageList;soaprtl;ibdacvcl290;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -83,6 +95,10 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_3_Win32)'!=''">
+        <DCC_Define>TESTINSIGHT;$(DCC_Define)</DCC_Define>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -126,6 +142,7 @@
         <DCCReference Include="Tests\Delphi.CommandLineParser.Int64Tests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.InvalidDefaultTests.DUnitX.pas"/>
         <DCCReference Include="Tests\Delphi.CommandLineParser.UsageTests.DUnitX.pas"/>
+        <DCCReference Include="Tests\Delphi.CommandLineParser.RttiLifetimeTests.DUnitX.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -137,6 +154,10 @@
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
+        <BuildConfiguration Include="Debug - TestInsight">
+            <Key>Cfg_3</Key>
+            <CfgParent>Cfg_1</CfgParent>
+        </BuildConfiguration>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Delphi.Personality.12</Borland.Personality>
@@ -147,8 +168,8 @@
                     <Source Name="MainSource">DelphiCommandlineParserUnitTests.dpr</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k370.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp370.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="5">

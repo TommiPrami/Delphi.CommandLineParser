@@ -1,8 +1,378 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<test-results name="C:\git_opensource\TommiPrami\Delphi.CommandLineParser\UnitTests\Win32\Debug\DelphiCommandlineParserUnitTests.exe" total="0" errors="0" failures="0" ignored="0" inconclusive="0" not-run="0" skipped="0" invalid="0" date="2024-11-26" time="0.000">
+<test-results name="C:\git_opensource\TommiPrami\Delphi.CommandLineParser\UnitTests\Win32\Debug\DelphiCommandlineParserUnitTests.exe" total="226" errors="0" failures="0" ignored="0" inconclusive="0" not-run="0" skipped="0" invalid="0" date="2026-06-26" time="0.415">
   <culture-info current-culture="en" current-uiculture="en" />
-  <test-suite type="Assembly" name="DelphiCommandlineParserUnitTests.exe" executed="true" result="Success" success="True" time="0.000" asserts="0">
+  <test-suite type="Assembly" name="DelphiCommandlineParserUnitTests.exe" executed="true" result="Success" success="True" time="0.415" asserts="0">
     <results>
+        <test-suite type="Namespace" name="Delphi" executed="true" result="Success" success="True" time="0.402" asserts="0" >
+          <results>
+              <test-suite type="Namespace" name="CommandLineParser" executed="true" result="Success" success="True" time="0.402" asserts="0" >
+                <results>
+                    <test-suite type="Fixture" name="TBooleanTests" executed="True" result="Success" success="True" time="0.004" >
+                      <results>
+                        <test-case name="FlagWithoutValueSetsTrue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExplicitTrue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExplicitFalse" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExplicitTrueLowercase" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExplicitFalseLowercase" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidValueReturnsFalseAndSetsError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="AbsentBooleanRemainsFalse" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="TwoBooleanFlagsBothSetTrue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="BooleanCanFollowOtherSwitch" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TConfigErrorTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="UnsupportedScalarTypeRaises" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UnsupportedArrayElementTypeRaises" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ConfigErrorExceptionIsECLPConfigurationError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TDateTimeTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="ParsesISO8601Date" executed="True" result="Success" success="True" time="0.006" asserts="0" />
+                        <test-case name="ParsesTime" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesISO8601DateTime" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidDateRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidTimeRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DefaultsApplied" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TEmptyValueTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="ExplicitEmptyColonSetsStringToEmpty" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExplicitEmptyEqualsSetsStringToEmpty" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SwitchWithoutDelimiterDoesNotOverrideDefault" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExplicitEmptyOnIntegerFails" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TEnumTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="ParsesFirstEnumValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesMiddleEnumValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesLastEnumValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DefaultEnumApplied" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UnknownEnumValueFailsGracefully" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UnknownEnumValueSetsInvalidDataError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TEnvironmentTests" executed="True" result="Success" success="True" time="0.004" >
+                      <results>
+                        <test-case name="EnvVarUsedWhenSwitchAbsent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="CommandLineOverridesEnvVar" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="EnvVarOverridesDefault" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DefaultUsedWhenEnvVarUnset" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UnsetEnvVarIsIgnored" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidEnvVarValueFailsParse" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidEnvVarValueReportsInvalidData" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ValidEnvVarIntegerStillParses" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TErrorInfoTests" executed="True" result="Success" success="True" time="0.004" >
+                      <results>
+                        <test-case name="SuccessfulParseHasNoError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UnknownNamedSetsExpectedKind" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidIntegerSetsInvalidDataKind" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="BooleanWithBadValueSetsInvalidDataKind" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="MissingNamedSetsExpectedKind" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="MissingPositionalSetsExpectedKind" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExtraPositionalSetsExpectedKind" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ErrorInfoTextIsPopulated" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ErrorInfoSwitchNameIsPopulated" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParseClearsBetweenSuccessfulCalls" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TExtendableTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="ExactNameStillWorks" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExtensionAccessibleViaGetExtension" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExtensionWithValueWorks" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NonExtendableSwitchNotMatchedByPrefix" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="GetExtensionOnUndefinedSwitchRaises" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="GetExtensionOnNonExtendableSwitchRaises" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TFileSystemTests" executed="True" result="Success" success="True" time="0.187" >
+                      <results>
+                        <test-case name="ExistingFileAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NonExistingFileRejected" executed="True" result="Success" success="True" time="0.076" asserts="0" />
+                        <test-case name="FileErrorKindIsFileDoNotExist" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExistingDirectoryAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NonExistingDirectoryRejected" executed="True" result="Success" success="True" time="0.032" asserts="0" />
+                        <test-case name="FileMustExistOnIntegerRaisesWrongTypeError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="AllFilesInArrayMustExist" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ArrayWithOneMissingFileRejected" executed="True" result="Success" success="True" time="0.066" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TFloatTests" executed="True" result="Success" success="True" time="0.004" >
+                      <results>
+                        <test-case name="ParsesPositiveFloat" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesNegativeFloat" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesIntegerAsFloat" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UsesInvariantDecimalSeparator" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidFloatRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SinglePropertyAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DefaultAppliedWhenAbsent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="THelpSwitchTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="DashHRecognizedWhenEnabled" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DashQuestionMarkRecognizedWhenEnabled" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DoubleDashHelpRecognizedWhenEnabled" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="HelpSkipsRequiredValidation" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="HelpNotRecognizedByDefault" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="HelpRequestedFalseWhenAbsent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="HelpRequestedResetBetweenParseCalls" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="HelpTokenTakesPrecedenceOverUserSwitchH" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UserSwitchHReachableWhenHelpDisabled" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TIgnoreUnknownTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="UnknownSwitchFailsByDefault" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IgnoreUnknownOptionSwallowsUnknown" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="KnownSwitchStillProcessedWhenIgnoring" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DefaultOptionsAreEmptySet" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="OptionsRoundTrip" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TIllegalEnumValueTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="LegalValueAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="FirstIllegalValueRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SecondIllegalValueRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IllegalValueProducesInvalidDataError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DefaultValueStillAppliesEvenIfIllegalElsewhere" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TInheritanceTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="BasePropertyVisibleOnDerived" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DerivedPropertyAvailable" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="BothLevelsParsedTogether" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ThreeLevelsOfInheritance" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="BaseDefaultStillAppliedThroughDerived" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TInt64Tests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="ParsesValueBeyond32BitPositive" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesValueBeyond32BitNegative" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesMaxInt64" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesMinInt64" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SmallValueStillWorksOnInt64" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="Int32PropertyRejectsValueAbove32Bit" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="Int32PropertyStillAcceptsBoundaryValues" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TIntegerTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="ParsesPositiveInteger" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesNegativeInteger" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesZero" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesHighInt" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParsesLowInt" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidIntegerReturnsFalse" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NonNumericReturnsFalse" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="FloatStringRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DefaultAppliedWhenAbsent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TInvalidDefaultTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="OutOfRangeDefaultRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="WrongTypeDefaultRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="BadEnumDefaultRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="InvalidDefaultErrorKindIsInvalidDefault" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ValidDefaultDoesNotRaise" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TLongNameShortFormTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="FullLongFormAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ShortFormPrefixAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IntermediatePrefixAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="PrefixShorterThanShortFormRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="AlternateLongName1Accepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="AlternateLongName2Accepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="AlternateLongName3Accepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="MismatchedShortFormRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="TwoLetterShortNameRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TParserLifecycleTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="CreateParserReturnsInterface" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="GlobalParserIsSingleton" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="CreateParserReturnsNewInstances" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParserCanBeReusedAcrossMultipleParseCalls" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ParserAllowsDifferentDefinitionClassesPerCall" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TPositionRestTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="SingleRestCollectsAllPositionals" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="FirstPositionalThenRest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NoPositionalsLeavesRestEmpty" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="DuplicatePositionRestRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NonStringPositionRestRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TPositionalTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="SingleOptionalPositional" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="TwoRequiredPositionals" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RequiredPositionalMissingFails" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ExtraPositionalArgumentFails" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RequiredAfterOptionalRaisesConfigError" executed="True" result="Success" success="True" time="0.002" asserts="0" />
+                        <test-case name="PositionalsAndSwitchesMix" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="PositionMustBePositive" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="MissingPositionalDefinitionRaisesConfigError" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TQuotingTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="QuotedValueWithSpaces" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="QuotedValueAttachedToSwitch" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="EscapedQuoteInsideQuotedValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="TwoQuotedTokensWithSpaceBetween" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UnterminatedQuoteAbsorbsRest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="EmptyQuotedValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ArrayWithSpacesInsideQuotes" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ArrayWithMultipleSeparateQuotedItems" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TRangeTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="IntegerInsideRangeAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IntegerAtLowerBoundAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IntegerAtUpperBoundAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IntegerBelowLowerBoundRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IntegerAboveUpperBoundRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="FloatInsideRangeAccepted" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="FloatOutsideRangeRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TRequiredAndDefaultsTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="StringDefaultApplied" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IntegerDefaultApplied" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ProvidedValueOverridesDefault" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RequiredMissingFails" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RequiredProvidedSucceeds" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RequiredErrorKindIsMissingNamed" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RequiredWithDefaultAcceptedWhenAbsent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TResponseFileTests" executed="True" result="Success" success="True" time="0.127" >
+                      <results>
+                        <test-case name="SingleLineResponseFileExpanded" executed="True" result="Success" success="True" time="0.004" asserts="0" />
+                        <test-case name="MultiLineResponseFileExpanded" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ResponseFileWithQuotedValuesPreservesSpaces" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NonExistentResponseFileFails" executed="True" result="Success" success="True" time="0.048" asserts="0" />
+                        <test-case name="ResponseFileCombinedWithSwitchRejected" executed="True" result="Success" success="True" time="0.015" asserts="0" />
+                        <test-case name="ResponseFileCombinedWithPositionalRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="TwoResponseFilesRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RecursiveAtTokenInsideFileRejected" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NoResponseFileLeavesCommandLineUnchanged" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ErrorKindIsResponseFile" executed="True" result="Success" success="True" time="0.049" asserts="0" />
+                        <test-case name="Utf8ResponseFileWithoutBomDecodedCorrectly" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TRttiLifetimeTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="AllTypeDefaultsAppliedViaRtti" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UsageReadsEveryPropertyViaRtti" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="RepeatedParseDoesNotCorruptRttiPool" executed="True" result="Success" success="True" time="0.006" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TShortNameTests" executed="True" result="Success" success="True" time="0.002" >
+                      <results>
+                        <test-case name="BooleanShortNameAsFlag" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="IntegerShortNameWithColon" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="StringShortNameWithColon" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="StringShortNameAttachedValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="MultipleShortNamesOnOneLine" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ShortAndLongNameInterchangeable" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TCommandLineParserSimpleTestsDUnitX" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="CreateAndFreeTest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SimpleDefaultTest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SimpleNonDefaultTest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SimpleNonDefaultEqualSeparatorTest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SimpleRequiredNoDefaultTest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SimpleListParameterTest" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TSkipTests" executed="True" result="Success" success="True" time="0.001" >
+                      <results>
+                        <test-case name="SkippedPropertyIsNotMatchedByName" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="NonSkippedPropertyStillWorks" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SkippedPropertyDoesNotAppearInUsage" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TStringArrayTests" executed="True" result="Success" success="True" time="0.003" >
+                      <results>
+                        <test-case name="SingleValueProducesOneElementArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SemicolonSeparatedYieldsMultipleElements" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="CommaSeparatedYieldsMultipleElements" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="MixedCommaSemicolonSeparators" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="EmptyDefaultLeavesArrayUntouched" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="AbsentSwitchKeepsInitialValue" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SecondParseOverwritesPrevious" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Fixture" name="TSwitchSyntaxTests" executed="True" result="Success" success="True" time="0.004" >
+                      <results>
+                        <test-case name="LongFormWithDoubleDash" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="LongFormWithSingleDash" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="LongFormWithSlash" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ColonSeparator" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="EqualsSeparator" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="ColonChosenWhenBothPresent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="MultipleSwitchesOnOneLine" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="LeadingAndTrailingWhitespaceTolerated" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="UnknownSwitchFails" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                        <test-case name="SwitchNamesAreCaseInsensitive" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                      </results>
+                    </test-suite>
+                    <test-suite type="Namespace" name="DUnitX" executed="true" result="Success" success="True" time="0.006" asserts="0" >
+                      <results>
+                          <test-suite type="Fixture" name="TUsageHelperTests" executed="True" result="Success" success="True" time="0.004" >
+                            <results>
+                              <test-case name="LastSpaceBefore_FindsSpaceBeforePosition" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="LastSpaceBefore_ReturnsZeroWhenNoSpace" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="LastSpaceBefore_ClampsWhenStartBeyondLength" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="WordWrap_ShortLineUnchanged" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="WordWrap_BreaksAtSpace" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="WordWrap_AppliesHangingIndent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="WordWrap_LongWordNotSplit" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="WordWrap_DisabledWhenColumnZero" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="TwoColumn_PadsLeftToWidestCell" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="TwoColumn_DescriptionsAlignAcrossRows" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="TwoColumn_EmptyRightEmitsLeftOnly" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                            </results>
+                          </test-suite>
+                          <test-suite type="Fixture" name="TUsageIntegrationTests" executed="True" result="Success" success="True" time="0.003" >
+                            <results>
+                              <test-case name="LongNamesUseDoubleDash" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="ShortNameUsesSingleDash" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="BooleanFlagHasNoValueSuffix" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="NonBooleanShowsValueSuffix" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="RequiredSwitchNotBracketedOptionalIs" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="DescriptionsShareAColumn" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="SkippedPropertyAbsent" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                              <test-case name="PositionalNotListedTwiceInPrototype" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                            </results>
+                          </test-suite>
+                      </results>
+                    </test-suite>
+                </results>
+              </test-suite>
+          </results>
+        </test-suite>
     </results>
   </test-suite>
 </test-results>

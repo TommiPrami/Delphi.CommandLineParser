@@ -17,6 +17,7 @@ uses
   TestInsight.DUnitX,
   {$ELSE}
   DUnitX.Loggers.Console,
+  DUnitX.Loggers.XML.NUnit,
   {$ENDIF }
   DUnitX.TestFramework,
   Delphi.CommandLineParser in '..\Delphi.CommandLineParser.pas',
@@ -50,7 +51,8 @@ uses
   Delphi.CommandLineParser.ResponseFileTests.DUnitX in 'Tests\Delphi.CommandLineParser.ResponseFileTests.DUnitX.pas',
   Delphi.CommandLineParser.Int64Tests.DUnitX in 'Tests\Delphi.CommandLineParser.Int64Tests.DUnitX.pas',
   Delphi.CommandLineParser.InvalidDefaultTests.DUnitX in 'Tests\Delphi.CommandLineParser.InvalidDefaultTests.DUnitX.pas',
-  Delphi.CommandLineParser.UsageTests.DUnitX in 'Tests\Delphi.CommandLineParser.UsageTests.DUnitX.pas';
+  Delphi.CommandLineParser.UsageTests.DUnitX in 'Tests\Delphi.CommandLineParser.UsageTests.DUnitX.pas',
+  Delphi.CommandLineParser.RttiLifetimeTests.DUnitX in 'Tests\Delphi.CommandLineParser.RttiLifetimeTests.DUnitX.pas';
 
 { keep comment here to protect the following conditional from being removed by the IDE when adding a unit }
 {$IFNDEF TESTINSIGHT}
@@ -61,6 +63,17 @@ var
   LNunitLogger: ITestLogger;
 {$ENDIF}
 begin
+{$IFDEF DEBUG} 
+  {
+    Run the whole suite with FastMM5 in debug mode: it scrubs freed memory and
+    validates blocks on free/realloc, so memory-safety bugs (use-after-free,
+    double-free, buffer overruns) fault loudly during tests instead of silently
+    "working". This is stricter than the RTL's default (FastMM4-derived) manager
+    and is what turns a dangling-TRttiProperty regression into a hard failure.
+  }
+  FastMM_EnterDebugMode;
+{$ENDIF}
+
 {$IFDEF TESTINSIGHT}
   TestInsight.DUnitX.RunRegisteredTests;
 {$ELSE}
