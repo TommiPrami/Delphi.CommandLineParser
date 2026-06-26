@@ -71,3 +71,4 @@ __recovery/
 modules/
 *.dsv
 /UnitTests/Win32
+UnitTests/Win32/Debug/dunitx-results.xml
