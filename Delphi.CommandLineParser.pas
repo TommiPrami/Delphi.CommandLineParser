@@ -315,8 +315,8 @@ type
   ///    empty, only the (padded) left cell is emitted. ALeft and ARight must
   ///    have the same length.
   ///  </summary>
-  function CLPFormatTwoColumnBlock(const ALeft, ARight: TArray<string>;
-    const ASeparator: string; const AWrapAtColumn: Integer): TArray<string>;
+  function CLPFormatTwoColumnBlock(const ALeft, ARight: TArray<string>; const ASeparator: string;
+    const AWrapAtColumn: Integer): TArray<string>;
 
 implementation
 
@@ -436,19 +436,19 @@ type
 
 const
   {$IFDEF MSWINDOWS}
-    FSwitchDelims: array [0..2] of string = ('--', '-', '/');
+    SWITCH_DELIMETERS: array [0..2] of string = ('--', '-', '/');
   {$ELSE}
-    FSwitchDelims: array [0..1] of string = ('--', '-');
+    SWITCH_DELIMETERS: array [0..1] of string = ('--', '-');
   {$ENDIF}
-    FParamDelims : array [0..1] of Char = (':', '=');
+    PARAM_DELIMETERS : array [0..1] of Char = (':', '=');
 
   // Canonical prefixes used when RENDERING usage. Intentionally independent of
-  // FSwitchDelims (which governs PARSING and whose order changed when '--' was
+  // SWITCH_DELIMETERS (which governs PARSING and whose order changed when '--' was
   // promoted to first-tried). Short = single dash, long = double dash.
-  CUsageShortPrefix = '-';
-  CUsageLongPrefix  = '--';
-  CUsageParamDelim  = ':';   // matches a real, parseable separator
-  CUsageDescDelim   = ' - '; // between the names column and the description
+  USAGE_SHORT_PREFIX = '-';
+  USAGE_LONG_PREFIX  = '--';
+  USAGE_PARAM_DELIM  = ':';   // matches a real, parseable separator
+  USAGE_DESC_DELIM   = ' - '; // between the names column and the description
 
 type
   TCommandLineParser = class(TInterfacedObject, ICommandLineParser)
@@ -838,6 +838,7 @@ begin
   for LIllegal in FIllegalValues do
     if SameText(LIllegal, AValue) then
       Exit(True);
+
   Result := False;
 end;
 
@@ -1078,6 +1079,7 @@ begin
   if LHighPos > 0 then
   begin
     SetLength(FPositionals, LHighPos);
+
     for LIndex := Low(FPositionals) to High(FPositionals) do
       FPositionals[LIndex] := nil;
 
@@ -1131,9 +1133,11 @@ begin
 
   // First pass: tokenize a copy of the command line and count tokens / @-tokens.
   LCopy := ACommandLine;
+
   while GrabNextElement(LCopy, LToken) do
   begin
     Inc(LTotalTokens);
+
     if LToken.StartsWith('@') then
     begin
       LResponseFileToken := LToken;
@@ -1145,16 +1149,14 @@ begin
     Exit(True); // Nothing to expand.
 
   if (LResponseFileCount > 1) or (LTotalTokens > 1) then
-    Exit(SetError(ekResponseFile, edResponseFileMustBeSole, SResponseFileMustBeSole,
-      0, LResponseFileToken));
+    Exit(SetError(ekResponseFile, edResponseFileMustBeSole, SResponseFileMustBeSole, 0, LResponseFileToken));
 
   // Exactly one token, which is "@<filename>". Load the file.
   LFileName := LResponseFileToken;
   Delete(LFileName, 1, 1);
 
   if not FileExists(LFileName) then
-    Exit(SetError(ekResponseFile, edResponseFileNotFound, SResponseFileNotFound,
-      0, LFileName));
+    Exit(SetError(ekResponseFile, edResponseFileNotFound, SResponseFileNotFound, 0, LFileName));
 
   LFileLines := TStringList.Create;
   try
@@ -1171,10 +1173,10 @@ begin
 
   // Recursion guard: the expanded content must not itself contain @-tokens.
   LCopy := ACommandLine;
+
   while GrabNextElement(LCopy, LToken) do
     if LToken.StartsWith('@') then
-      Exit(SetError(ekResponseFile, edResponseFileMustBeSole, SResponseFileMustBeSole,
-        0, LToken));
+      Exit(SetError(ekResponseFile, edResponseFileMustBeSole, SResponseFileMustBeSole, 0, LToken));
 
   Result := True;
 end;
@@ -1268,6 +1270,7 @@ begin
   for LToken in CHelpTokens do
     if SameText(ARawToken, LToken) then
       Exit(True);
+
   Result := False;
 end;
 
@@ -1344,7 +1347,7 @@ begin
   AHasParamDelim := False;
 
   LSwitchBody := ASwitchRawValue;
-  for LSwitchDelim in FSwitchDelims do
+  for LSwitchDelim in SWITCH_DELIMETERS do
     if StartsStr(LSwitchDelim, LSwitchBody) then
     begin
       LSwitchBody := ASwitchRawValue;
@@ -1362,7 +1365,7 @@ begin
     LName := LSwitchBody;
     LFirstDelimPos := 0;
 
-    for LParamDelim in FParamDelims do
+    for LParamDelim in PARAM_DELIMETERS do
     begin
       LDelimPos := Pos(LParamDelim, LName);
 
@@ -1458,6 +1461,7 @@ begin
     raise ECLPConfigurationError.Create(ErrorInfo) at ReturnAddress;
 
   LCommandLine := ACommandLine;
+
   if not ExpandResponseFile(LCommandLine) then
     Exit(False);
 
@@ -1547,7 +1551,7 @@ begin
       SetLength(LIllegalValues, Length(LIllegalValues) + 1);
       LIllegalValues[High(LIllegalValues)] := CLPIllegalValueAttribute(LAttribute).Value;
     end;
-  end; //for attr
+  end;
 
   if (Length(LLongNames) = 0) and (not SameText(AProp.Name, Trim(LShortName))) then
     AddLongName(AProp.Name, '', LLongNames);
@@ -1599,6 +1603,7 @@ begin
     if LSwitchData.EnvironmentVariable <> '' then
     begin
       var LEnvValue := GetEnvironmentVariable(LSwitchData.EnvironmentVariable);
+
       if (LEnvValue <> '') and (not LSwitchData.SetValue(LEnvValue)) then
         Exit(SetError(ekInvalidData, edInvalidDataForSwitch, SInvalidDataForSwitch, 0, LSwitchData.DisplayName));
     end;
@@ -1802,8 +1807,8 @@ begin
   end;
 end;
 
-function CLPFormatTwoColumnBlock(const ALeft, ARight: TArray<string>;
-  const ASeparator: string; const AWrapAtColumn: Integer): TArray<string>;
+function CLPFormatTwoColumnBlock(const ALeft, ARight: TArray<string>; const ASeparator: string;
+  const AWrapAtColumn: Integer): TArray<string>;
 var
   LResult: TList<string>;
   LMaxLeft: Integer;
@@ -1813,6 +1818,7 @@ begin
   LResult := TList<string>.Create;
   try
     LMaxLeft := 0;
+
     for LIndex := 0 to High(ALeft) do
       if Length(ALeft[LIndex]) > LMaxLeft then
         LMaxLeft := Length(ALeft[LIndex]);
@@ -1822,8 +1828,7 @@ begin
       LPaddedLeft := ALeft[LIndex] + StringOfChar(' ', LMaxLeft - Length(ALeft[LIndex]));
 
       if (LIndex <= High(ARight)) and (ARight[LIndex] <> '') then
-        LResult.AddRange(CLPWordWrapLine(LPaddedLeft + ASeparator + ARight[LIndex],
-          AWrapAtColumn, LMaxLeft + Length(ASeparator)))
+        LResult.AddRange(CLPWordWrapLine(LPaddedLeft + ASeparator + ARight[LIndex], AWrapAtColumn, LMaxLeft + Length(ASeparator)))
       else
         LResult.Add(TrimRight(LPaddedLeft));
     end;
@@ -1843,7 +1848,7 @@ begin
   if (AData.SwitchType = stBoolean) or AData.ParamName.IsEmpty then
     Result := ''
   else
-    Result := CUsageParamDelim + AData.ParamName;
+    Result := USAGE_PARAM_DELIM + AData.ParamName;
 end;
 
 function TUsageFormatter.SwitchLabel(const APrefix, AName: string; const AData: TSwitchData): string;
@@ -1858,28 +1863,28 @@ begin
   Result := '';
 
   if AData.Name <> '' then
-    Result := SwitchLabel(CUsageShortPrefix, AData.Name, AData);
+    Result := SwitchLabel(USAGE_SHORT_PREFIX, AData.Name, AData);
 
   for LLongName in AData.LongNames do
   begin
     if Result <> '' then
       Result := Result + ', ';
 
-    Result := Result + SwitchLabel(CUsageLongPrefix, LLongName.LongForm, AData);
+    Result := Result + SwitchLabel(USAGE_LONG_PREFIX, LLongName.LongForm, AData);
   end;
 
   if Result = '' then // no explicit name at all
-    Result := SwitchLabel(CUsageLongPrefix, AData.PropertyName, AData);
+    Result := SwitchLabel(USAGE_LONG_PREFIX, AData.PropertyName, AData);
 end;
 
 function TUsageFormatter.PrimaryName(const AData: TSwitchData): string;
 begin
   if (Length(AData.LongNames) >= 1) and not AData.LongNames[0].LongForm.IsEmpty then
-    Result := CUsageLongPrefix + AData.LongNames[0].LongForm
+    Result := USAGE_LONG_PREFIX + AData.LongNames[0].LongForm
   else if AData.Name <> '' then
-    Result := CUsageShortPrefix + AData.Name
+    Result := USAGE_SHORT_PREFIX + AData.Name
   else
-    Result := CUsageLongPrefix + AData.PropertyName;
+    Result := USAGE_LONG_PREFIX + AData.PropertyName;
 
   Result := Result + ParamSuffix(AData);
 end;
@@ -1950,6 +1955,7 @@ begin
     else
     begin
       LRightCell := LSwitchData.Description;
+
       if LSwitchData.DefaultValue <> '' then
         LRightCell := LRightCell + SDefault + LSwitchData.DefaultValue;
 
@@ -1961,6 +1967,7 @@ begin
     if not (soPositional in LSwitchData.Options) then
     begin
       LRightCell := LSwitchData.Description;
+
       if LSwitchData.DefaultValue <> '' then
         LRightCell := LRightCell + SDefault + LSwitchData.DefaultValue;
 
@@ -1974,7 +1981,7 @@ begin
     // [1] = blank separator.
     LResult.Add('');
     // [2..] = aligned, wrapped two-column detail block.
-    LResult.AddRange(CLPFormatTwoColumnBlock(LLeft, LRight, CUsageDescDelim, AWrapAtColumn));
+    LResult.AddRange(CLPFormatTwoColumnBlock(LLeft, LRight, USAGE_DESC_DELIM, AWrapAtColumn));
 
     AUsageList := LResult.ToArray;
   finally
