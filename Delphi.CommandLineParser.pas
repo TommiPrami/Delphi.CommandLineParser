@@ -584,7 +584,8 @@ begin
   if not LError.IsEmpty then
   begin
     WriteLn('');
-    WriteLn('    * Error: ' + AParser.ErrorInfo.SwitchName.QuotedString('"') + ' - ' + AParser.ErrorInfo.Text.QuotedString('"'));
+    WriteLn('  * Error in switch:');
+    WriteLn('    - ' + AParser.ErrorInfo.SwitchName + ' - ' + AParser.ErrorInfo.Text.QuotedString('"'));
   end;
 end;
 
