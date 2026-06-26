@@ -447,7 +447,6 @@ const
   // SWITCH_DELIMETERS (which governs PARSING and whose order changed when '--' was
   // promoted to first-tried). Short = single dash, long = double dash.
   USAGE_SHORT_PREFIX = '-';
-  USAGE_LONG_PREFIX  = '--';
   USAGE_PARAM_DELIM  = ':';   // matches a real, parseable separator
   USAGE_DESC_DELIM   = ' - '; // between the names column and the description
 
@@ -554,13 +553,12 @@ begin
   LUsageLines := AParser.Usage;
 
   WriteLn('Usage:');
-  WriteLn('  ' + LUsageLines[0]);
 
-  for LIndex := 1 to High(LUsageLines) do
+  for LIndex := 0 to High(LUsageLines) do
   begin
     LLine := LUsageLines[LIndex];
 
-    WriteLn('    ' + LLine);
+    WriteLn(LLine);
   end;
 
   var LError := AParser.ErrorInfo.Text;
@@ -568,7 +566,7 @@ begin
   if not LError.IsEmpty then
   begin
     WriteLn('');
-    WriteLn('    Error: ' + AParser.ErrorInfo.SwitchName.QuotedString('"') + ' - ' + AParser.ErrorInfo.Text.QuotedString('"'));
+    WriteLn('    * Error: ' + AParser.ErrorInfo.SwitchName.QuotedString('"') + ' - ' + AParser.ErrorInfo.Text.QuotedString('"'));
   end;
 end;
 
@@ -1877,21 +1875,21 @@ begin
     if Result <> '' then
       Result := Result + ', ';
 
-    Result := Result + SwitchLabel(USAGE_LONG_PREFIX, LLongName.LongForm, AData);
+    Result := Result + SwitchLabel(USAGE_SHORT_PREFIX, LLongName.LongForm, AData);
   end;
 
   if Result = '' then // no explicit name at all
-    Result := SwitchLabel(USAGE_LONG_PREFIX, AData.PropertyName, AData);
+    Result := SwitchLabel(USAGE_SHORT_PREFIX, AData.PropertyName, AData);
 end;
 
 function TUsageFormatter.PrimaryName(const AData: TSwitchData): string;
 begin
   if (Length(AData.LongNames) >= 1) and not AData.LongNames[0].LongForm.IsEmpty then
-    Result := USAGE_LONG_PREFIX + AData.LongNames[0].LongForm
+    Result := USAGE_SHORT_PREFIX + AData.LongNames[0].LongForm
   else if AData.Name <> '' then
     Result := USAGE_SHORT_PREFIX + AData.Name
   else
-    Result := USAGE_LONG_PREFIX + AData.PropertyName;
+    Result := USAGE_SHORT_PREFIX + AData.PropertyName;
 
   Result := Result + ParamSuffix(AData);
 end;
