@@ -392,6 +392,7 @@ type
     FParamValue: string;
     FPosition: Integer;
     FPropertyName: string;
+    FRttiContext: TRttiContext;
     FHasValue: Boolean;
     FSwitchType: TCLPSwitchType;
   strict protected
@@ -696,6 +697,13 @@ constructor TSwitchData.Create(const AInstance: TObject; const APropertyName, AN
 begin
   inherited Create;
 
+  // Hold the RTTI context for the whole lifetime of this object. TRttiContext is
+  // a record whose interface token keeps the shared RTTI pool - and every
+  // TRttiType / TRttiProperty it hands out - alive. If the context lived only as
+  // a local inside a lookup helper, the pool would be released the moment that
+  // helper returned, leaving any returned TRttiProperty dangling.
+  FRttiContext := TRttiContext.Create;
+
   FInstance := AInstance;
   FPropertyName := APropertyName;
   FName := AName;
@@ -739,14 +747,13 @@ begin
 end;
 
 function TSwitchData.GetRttiProperty: TRttiProperty;
-var
-  LContext: TRttiContext;
 begin
-  // TRttiContext uses a shared, reference-counted RTTI pool, so creating one
-  // per call is cheap. Centralised here to avoid repeating the lookup in every
-  // value getter/setter.
-  LContext := TRttiContext.Create;
-  Result := LContext.GetType(FInstance.ClassType).GetProperty(FPropertyName);
+  // Use the long-lived FRttiContext (created in the constructor) so the returned
+  // TRttiProperty stays valid for as long as this TSwitchData lives. Creating a
+  // local context here instead would free the RTTI pool the moment this function
+  // returned, leaving the caller with a dangling TRttiProperty - a use-after-free
+  // that typically surfaces as an AV around the next call that touches it.
+  Result := FRttiContext.GetType(FInstance.ClassType).GetProperty(FPropertyName);
 end;
 
 procedure TSwitchData.SetBooleanTrue;
