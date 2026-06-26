@@ -318,6 +318,15 @@ type
   function CLPFormatTwoColumnBlock(const ALeft, ARight: TArray<string>; const ASeparator: string;
     const AWrapAtColumn: Integer): TArray<string>;
 
+  ///  <summary>
+  ///    Packs ATokens onto as few lines as possible without exceeding
+  ///    AWrapAtColumn, breaking only BETWEEN tokens (never inside one) and
+  ///    indenting continuation lines by AContinuationIndent spaces. A token
+  ///    wider than the column is emitted intact on its own line. AWrapAtColumn
+  ///    &lt;= 0 places every token on a single line.
+  ///  </summary>
+  function CLPWrapTokens(const ATokens: TArray<string>; const AWrapAtColumn, AContinuationIndent: Integer): TArray<string>;
+
 implementation
 
 uses
@@ -448,7 +457,16 @@ const
   // promoted to first-tried). Short = single dash, long = double dash.
   USAGE_SHORT_PREFIX = '-';
   USAGE_PARAM_DELIM  = ':';   // matches a real, parseable separator
-  USAGE_DESC_DELIM   = ' - '; // between the names column and the description
+  USAGE_DESC_DELIM   = ' - '; // between the names column and the description (legacy two-column layout)
+
+  // Stacked usage detail layout (switch label / description / default) plus the
+  // wrapped prototype. The numeric values are indent widths, in spaces.
+  USAGE_DEFAULT_LABEL      = 'default: ';
+  USAGE_DESC_PREFIX        = '- ';
+  USAGE_PROTO_CONT_INDENT  = 2; // prototype continuation lines
+  USAGE_SWITCH_INDENT      = 2; // the switch label line
+  USAGE_DESC_INDENT        = 4; // spaces before the '- ' description marker
+  USAGE_DETAIL_CONT_INDENT = 6; // description continuation + default line (= USAGE_DESC_INDENT + Length('- '))
 
 type
   TCommandLineParser = class(TInterfacedObject, ICommandLineParser)
@@ -512,7 +530,7 @@ type
     function PositionalName(const AData: TSwitchData): string;
     /// Wraps AText in '[ ]' (optional) or '< >' (required positional).
     function Decorate(const AText: string; const AData: TSwitchData): string;
-    function BuildPrototype(const APositionals: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): string;
+    function BuildPrototypeTokens(const APositionals: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): TArray<string>;
   public
     procedure Usage(const AParser: TCommandLineParser; var AUsageList: TArray<string>; const AWrapAtColumn: Integer = 80);
   end;
@@ -1844,6 +1862,48 @@ begin
   end;
 end;
 
+function CLPWrapTokens(const ATokens: TArray<string>; const AWrapAtColumn, AContinuationIndent: Integer): TArray<string>;
+var
+  LResult: TList<string>;
+  LIndent: string;
+  LCurrent: string;
+  LToken: string;
+begin
+  LResult := TList<string>.Create;
+  try
+    LIndent := StringOfChar(' ', AContinuationIndent);
+    LCurrent := '';
+
+    for LToken in ATokens do
+    begin
+      if LToken = '' then
+        Continue;
+
+      if LCurrent = '' then
+        // First token of the first line: no indent. Continuation lines get the
+        // indent applied when a wrap happens, below.
+        LCurrent := LToken
+      else if (AWrapAtColumn > 0) and (Length(LCurrent) + 1 + Length(LToken) > AWrapAtColumn) then
+      begin
+        // The token would overflow the column. Tokens are never split, so the
+        // current line is flushed and the token starts the next (indented) line,
+        // even if the token itself is wider than the column.
+        LResult.Add(LCurrent);
+        LCurrent := LIndent + LToken;
+      end
+      else
+        LCurrent := LCurrent + ' ' + LToken;
+    end;
+
+    if LCurrent <> '' then
+      LResult.Add(LCurrent);
+
+    Result := LResult.ToArray;
+  finally
+    LResult.Free;
+  end;
+end;
+
 { TUsageFormatter }
 
 function TUsageFormatter.ParamSuffix(const AData: TSwitchData): string;
@@ -1914,82 +1974,156 @@ begin
     Result := AText;
 end;
 
-function TUsageFormatter.BuildPrototype(const APositionals: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): string;
+function TUsageFormatter.BuildPrototypeTokens(const APositionals: TArray<TSwitchData>; const ASwitchList: TObjectList<TSwitchData>): TArray<string>;
 var
   LSwitchData: TSwitchData;
+  LResult: TList<string>;
 begin
-  Result := '';
+  LResult := TList<string>.Create;
+  try
+    for LSwitchData in APositionals do
+      if Assigned(LSwitchData) then
+        LResult.Add(Decorate(PositionalName(LSwitchData), LSwitchData));
 
-  for LSwitchData in APositionals do
-    if Assigned(LSwitchData) then
-      Result := Result + Decorate(PositionalName(LSwitchData), LSwitchData) + ' ';
+    // Only NON-positional switches here — positionals are listed above. (The old
+    // implementation listed positionals twice.)
+    for LSwitchData in ASwitchList do
+      if not (soPositional in LSwitchData.Options) then
+        LResult.Add(Decorate(PrimaryName(LSwitchData), LSwitchData));
 
-  // Only NON-positional switches here — positionals are listed above. (The old
-  // implementation listed positionals twice.)
-  for LSwitchData in ASwitchList do
-    if not (soPositional in LSwitchData.Options) then
-      Result := Result + Decorate(PrimaryName(LSwitchData), LSwitchData) + ' ';
-
-  Result := TrimRight(Result);
+    Result := LResult.ToArray;
+  finally
+    LResult.Free;
+  end;
 end;
+
+type
+  // One switch's help, captured before layout so we can choose how to render it.
+  TUsageDetail = record
+    SwitchLabel: string;  // e.g. '[-UserName:<usernane>]'
+    Description: string;   // e.g. 'User name for Db connection'
+    DefaultValue: string;  // e.g. 'SYSDBA' (empty when no default)
+  end;
 
 procedure TUsageFormatter.Usage(const AParser: TCommandLineParser; var AUsageList: TArray<string>; const AWrapAtColumn: Integer = 80);
 var
   LSwitchData: TSwitchData;
+  LResult: TList<string>;
+  LDetails: TList<TUsageDetail>;
+  LDetail: TUsageDetail;
+  LTokens: TArray<string>;
   LLeft: TArray<string>;
   LRight: TArray<string>;
-  LRightCell: string;
-  LResult: TList<string>;
+  LIndex: Integer;
+  LLeftWidth: Integer;
+  LCompact: Boolean;
 
-  procedure AddRow(const ALeftCell, ARightCell: string);
+  procedure AddDetail(const ALabel, ADescription, ADefault: string);
+  var
+    LItem: TUsageDetail;
   begin
-    SetLength(LLeft, Length(LLeft) + 1);
-    SetLength(LRight, Length(LRight) + 1);
-    LLeft[High(LLeft)] := ALeftCell;
-    LRight[High(LRight)] := ARightCell;
+    LItem.SwitchLabel := ALabel;
+    LItem.Description := ADescription;
+    LItem.DefaultValue := ADefault;
+    LDetails.Add(LItem);
+  end;
+
+  // The single-line (compact) right-hand text: description with the default
+  // appended, exactly as the original two-column formatter produced it.
+  function CompactRight(const ADetail: TUsageDetail): string;
+  begin
+    Result := ADetail.Description;
+
+    if ADetail.DefaultValue <> '' then
+      Result := Result + SDefault + ADetail.DefaultValue;
+  end;
+
+  // Stacked layout for one entry: label / '- description' / 'default: value',
+  // each part wrapped at AWrapAtColumn.
+  procedure AppendStacked(const ADetail: TUsageDetail);
+  begin
+    LResult.Add(StringOfChar(' ', USAGE_SWITCH_INDENT) + ADetail.SwitchLabel);
+
+    if ADetail.Description <> '' then
+      LResult.AddRange(CLPWordWrapLine(
+        StringOfChar(' ', USAGE_DESC_INDENT) + USAGE_DESC_PREFIX + ADetail.Description,
+        AWrapAtColumn, USAGE_DETAIL_CONT_INDENT));
+
+    if ADetail.DefaultValue <> '' then
+      LResult.AddRange(CLPWordWrapLine(
+        StringOfChar(' ', USAGE_DETAIL_CONT_INDENT) + USAGE_DEFAULT_LABEL + ADetail.DefaultValue,
+        AWrapAtColumn, USAGE_DETAIL_CONT_INDENT));
   end;
 
 begin
-  SetLength(LLeft, 0);
-  SetLength(LRight, 0);
-
-  // Positional switches — one help row each.
-  for LSwitchData in AParser.Positionals do
-    if not Assigned(LSwitchData) then // error in definition class
-      AddRow('*** missing ***', '')
-    else
-    begin
-      LRightCell := LSwitchData.Description;
-
-      if LSwitchData.DefaultValue <> '' then
-        LRightCell := LRightCell + SDefault + LSwitchData.DefaultValue;
-
-      AddRow(Decorate(PositionalName(LSwitchData), LSwitchData), LRightCell);
-    end;
-
-  // Named switches.
-  for LSwitchData in AParser.SwitchList do
-    if not (soPositional in LSwitchData.Options) then
-    begin
-      LRightCell := LSwitchData.Description;
-
-      if LSwitchData.DefaultValue <> '' then
-        LRightCell := LRightCell + SDefault + LSwitchData.DefaultValue;
-
-      AddRow(Decorate(NamesColumn(LSwitchData), LSwitchData), LRightCell);
-    end;
-
   LResult := TList<string>.Create;
+  LDetails := TList<TUsageDetail>.Create;
   try
-    // [0] = the one-line usage summary (exe + prototype).
-    LResult.Add(ExtractFileName(ParamStr(0)) + ' ' + BuildPrototype(AParser.Positionals, AParser.SwitchList));
-    // [1] = blank separator.
+    // [0..] = usage summary: exe name followed by the decorated switch tokens,
+    // wrapped at the requested column on token boundaries (never inside a token).
+    LTokens := BuildPrototypeTokens(AParser.Positionals, AParser.SwitchList);
+    Insert(ExtractFileName(ParamStr(0)), LTokens, 0);
+    LResult.AddRange(CLPWrapTokens(LTokens, AWrapAtColumn, USAGE_PROTO_CONT_INDENT));
+
+    // blank separator
     LResult.Add('');
-    // [2..] = aligned, wrapped two-column detail block.
-    LResult.AddRange(CLPFormatTwoColumnBlock(LLeft, LRight, USAGE_DESC_DELIM, AWrapAtColumn));
+
+    // Collect one detail entry (label / description / default) per switch:
+    // positional switches first, then named switches.
+    for LSwitchData in AParser.Positionals do
+      if not Assigned(LSwitchData) then // error in definition class
+        AddDetail('*** missing ***', '', '')
+      else
+        AddDetail(Decorate(PositionalName(LSwitchData), LSwitchData),
+          LSwitchData.Description, LSwitchData.DefaultValue);
+
+    for LSwitchData in AParser.SwitchList do
+      if not (soPositional in LSwitchData.Options) then
+        AddDetail(Decorate(NamesColumn(LSwitchData), LSwitchData),
+          LSwitchData.Description, LSwitchData.DefaultValue);
+
+    // Choose the layout. Use the compact, aligned two-column layout when EVERY
+    // entry fits on one line within the wrap column; otherwise fall back to the
+    // stacked layout so long switches/descriptions are not crushed. This keeps
+    // short switches with short defaults to a single line instead of three.
+    LLeftWidth := 0;
+    for LIndex := 0 to LDetails.Count - 1 do
+      if Length(LDetails[LIndex].SwitchLabel) > LLeftWidth then
+        LLeftWidth := Length(LDetails[LIndex].SwitchLabel);
+
+    LCompact := True;
+    if AWrapAtColumn > 0 then
+      for LIndex := 0 to LDetails.Count - 1 do
+      begin
+        LDetail := LDetails[LIndex];
+        if (CompactRight(LDetail) <> '') and
+           (LLeftWidth + Length(USAGE_DESC_DELIM) + Length(CompactRight(LDetail)) > AWrapAtColumn) then
+        begin
+          LCompact := False;
+          Break;
+        end;
+      end;
+
+    if LCompact then
+    begin
+      SetLength(LLeft, LDetails.Count);
+      SetLength(LRight, LDetails.Count);
+
+      for LIndex := 0 to LDetails.Count - 1 do
+      begin
+        LLeft[LIndex] := LDetails[LIndex].SwitchLabel;
+        LRight[LIndex] := CompactRight(LDetails[LIndex]);
+      end;
+
+      LResult.AddRange(CLPFormatTwoColumnBlock(LLeft, LRight, USAGE_DESC_DELIM, AWrapAtColumn));
+    end
+    else
+      for LDetail in LDetails do
+        AppendStacked(LDetail);
 
     AUsageList := LResult.ToArray;
   finally
+    LDetails.Free;
     LResult.Free;
   end;
 end;
