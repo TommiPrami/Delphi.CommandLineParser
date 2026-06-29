@@ -1,43 +1,44 @@
 # Delphi.CommandLineParser
-Slightly modified version of the : https://github.com/gabr42/GpDelphiUnits *by* @gabr42
+Slightly modified version of: https://github.com/gabr42/GpDelphiUnits *by* @gabr42
 
 *Original BSD-3 License applies*
 
-Chages to original: https://github.com/gabr42/GpDelphiUnits - GpCommandLineParser.pas
-  - Code changes are, at least some, are shared back to the original repository, as pull reguest. Primoz seems to be super busy, so I need to make my own version, to subject it to our code formattuing rules. I bet is better this way.
-    If someone is committed to some formatting and coding standard for decades, I bet they are not too happy to have  multiple standards in  their own repository.
+Changes to original: https://github.com/gabr42/GpDelphiUnits - GpCommandLineParser.pas
+  - Code changes, at least some, are shared back to the original repository as pull requests. Primoz seems to be super busy, so I need to make my own version, to subject it to our code formatting rules. I bet it is better this way.
+    If someone is committed to some formatting and coding standard for decades, I bet they are not too happy to have multiple standards in their own repository.
   - Formatting changed to more standard
   - Added possibility to have default as true boolean parameter, and ability to make it false:
     - -BoolParam:False (1/0, true/false, t/f should be supported)
-  - Default parameter stwiths in windows is "-" (not "/" character)
+  - Default parameter switch in Windows is "-" (not the "/" character)
   - Added support for Enums
   - Added support for TArray<string>
-  - Added support for object inheritance of the commandline objects. So the multiple applicatiosn ca chare common parameters and no need to duplicate code.
-  - Some comments that **I** think that are not needed, like version history, are removed, and some are moved into this readme.md etc...
+  - Added support for object inheritance of the command line objects. So multiple applications can share common parameters with no need to duplicate code.
+  - Some comments that **I** think are not needed, like version history, are removed, and some are moved into this readme.md etc...
 
 example parameter configuration
 
 ```Delphi
 type
-  TCustomCommandLine = class(TCustomCommandLine)
+  TCustomCommandLine = class(TObject)
   strict private
     FUseMultiThreading: Boolean;
   public
-    [CLPLongName('UseMultiThreading'), CLPDescription('Common Parameter for all commandline applications ', '<True/False>'), CLPDefault('True')]
+    [CLPLongName('UseMultiThreading'), CLPDescription('Common Parameter for all command line applications', '<True/False>'), CLPDefault('True')]
     property UseMultiThreading: Boolean read FUseMultiThreading write FUseMultiThreading;
   end;
 
   TCommandLine = class(TCustomCommandLine)
   strict private
-    FAutoTest  : Boolean;
-    FExtraFiles: string;
-    FFromDate  : string;
-    FImportDir : string;
-    FInputFile : string;
-    FNumDays   : Integer;
-    FOutputFile: string;
-    FPrecision : string;
-    FToDateTime: string;
+    FAutoTest                 : Boolean;
+    FBooleanParamDefaultAsTrue: Boolean;
+    FExtraFiles               : string;
+    FFromDate                 : string;
+    FImportDir                : string;
+    FInputFile                : string;
+    FNumDays                  : Integer;
+    FOutputFile               : string;
+    FPrecision                : string;
+    FToDateTime               : string;
   public
     [CLPLongName('ToDate'), CLPDescription('Set ending date/time', '<dt>')]
     property ToDateTime: string read FToDateTime write FToDateTime;
@@ -66,7 +67,7 @@ type
     [CLPPositionRest, CLPDescription('Extra files'), CLPName('extra_files')]
     property ExtraFiles: string read FExtraFiles write FExtraFiles;
 
-    [CLPLongName('BooleanParamDefaultAsTrue'), CLPDescription('Boolean Param Default As True ', '<True/False>'), CLPDefault('True')]
-    property BooleanParamDefaultAsTrue: Boolean read FUsePDFium write FUsePDFium;
+    [CLPLongName('BooleanParamDefaultAsTrue'), CLPDescription('Boolean Param Default As True', '<True/False>'), CLPDefault('True')]
+    property BooleanParamDefaultAsTrue: Boolean read FBooleanParamDefaultAsTrue write FBooleanParamDefaultAsTrue;
   end;
 ```

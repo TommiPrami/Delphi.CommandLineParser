@@ -9,19 +9,6 @@ uses
   System.RTTI, System.SysUtils, System.TypInfo;
 
 type
-   {TODO: Add Skip (etc) attribute, to parser just skip the property all together, so there could be properties that
-          are helpers for App to use, but they are not (never ever) used from the command line. }
-  { TODO: Illegal values to the parser directly, that are syntactically legal parameters, but not logical for use.
-
-          For now at least for enum like (fooNonInitialized, fooDefault, fooExtraFine), where fooDefault would
-          be defined as a default for parameter, fooNonInitialized as internal error state, so
-          could automatically check the if the user puts explicitly fooNonInitialized to commandline,
-          so parser would give error and info for it.
-
-          Not sure how to handle numerical parameters though, lets say <= 0 would be illegal.
-          or some range is not allowed
-  }
-
   ///  <summary>
   ///    Specifies short (one letter) name for the switch.
   ///  </summary>
@@ -453,7 +440,7 @@ const
     PARAM_DELIMITERS : array [0..1] of Char = (':', '=');
 
   // Canonical prefixes used when RENDERING usage. Intentionally independent of
-  // SWITCH_DELIMETERS (which governs PARSING and whose order changed when '--' was
+  // SWITCH_DELIMITERS (which governs PARSING and whose order changed when '--' was
   // promoted to first-tried). Short = single dash, long = double dash.
   USAGE_SHORT_PREFIX = '-';
   USAGE_PARAM_DELIMITER = ':';   // matches a real, parseable separator
