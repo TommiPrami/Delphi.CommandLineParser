@@ -10,7 +10,7 @@ uses
 
 type
   ///  <summary>
-  ///    Specifies short (one letter) name for the switch.
+  ///    Specifies the short (one-letter) name for the switch.
   ///  </summary>
   CLPNameAttribute = class(TCustomAttribute)
   strict private
@@ -21,8 +21,8 @@ type
   end;
 
   ///  <summary>
-  ///    Specifies long name for the switch. If not set, property name is used
-  ///    for long name.
+  ///    Specifies the long name for the switch. If not set, the property name
+  ///    is used as the long name.
   ///
   ///    An abbreviation of the long name can also be provided which must match the
   ///    beginning of the long form. In this case the parser will accept shortened
@@ -44,7 +44,7 @@ type
   end;
 
   ///  <summary>
-  ///    Specifies default value which will be used, if switch is not found on the command line.
+  ///    Specifies the default value to use when the switch is not found on the command line.
   ///  </summary>
   CLPDefaultAttribute = class(TCustomAttribute)
   strict private
@@ -55,7 +55,7 @@ type
   end;
 
   ///  <summary>
-  ///    Provides switch description, used for the usage function.
+  ///    Provides a switch description, used by the usage function.
   ///  </summary>
   CLPDescriptionAttribute = class(TCustomAttribute)
   strict private
@@ -76,14 +76,14 @@ type
   end;
 
   ///  <summary>
-  ///    When present, check that given filename must exist.
+  ///    When present, checks that the given file exists.
   ///  </summary>
   CLPFileMustExistAttribute = class(TCustomAttribute)
   public
   end;
 
   ///  <summary>
-  ///    When present, check that directory must exist.
+  ///    When present, checks that the given directory exists.
   ///  </summary>
   CLPDirectoryMustExistAttribute = class(TCustomAttribute)
   public
@@ -91,15 +91,15 @@ type
 
   /// <summary>
   ///   When present, specifies that the switch name can be arbitrarily extended.
-  ///   The code can access this extension via GetExtension function.
+  ///   The code can access this extension via the GetExtension function.
   /// </summary>
   CLPExtendableAttribute = class(TCustomAttribute)
   public
   end;
 
   ///  <summary>
-  ///    Specifies position of a positional (unnamed) switch. First positional
-  ///    switch has position 1.
+  ///    Specifies the position of a positional (unnamed) switch. The first
+  ///    positional switch has position 1.
   ///  </summary>
   CLPPositionAttribute = class(TCustomAttribute)
   strict private
@@ -110,7 +110,7 @@ type
   end;
 
   ///  <summary>
-  ///    Specifies switch that will receive a #13-delimited list of all
+  ///    Specifies the switch that will receive a #13-delimited list of all
   ///    positional parameters for which switch definitions don't exist.
   ///  </summary>
   CLPPositionRestAttribute = class(TCustomAttribute)
@@ -334,10 +334,10 @@ resourcestring
   SRequiredSwitchWasNotProvided      = 'Required switch was not provided.';
   SShortNameMustBeOneLetterLong      = 'Short name must be one letter long.';
   STooManyPositionalArguments        = 'Too many positional arguments.';
-  SPositionRestMustBeString          = 'Type of a CLPPositionRest property must be string.';
+  SPositionRestMustBeString          = 'Type of a CLPPositionRest property must be a string.';
   SUnknownSwitch                     = 'Unknown switch.';
-  SUnsupportedPropertyType           = 'Unsupported property %s type.';
-  SWrongDataTypeForFileOrDirectoryMustExist = 'Switch data type for file or directory check must be string.';
+  SUnsupportedPropertyType           = 'Unsupported type for property %s.';
+  SWrongDataTypeForFileOrDirectoryMustExist = 'Switch data type for a file or directory check must be a string.';
   SFileDoesNotExist                  = 'File must exist.';
   SDirectoryDoesNotExist             = 'Directory must exist.';
   SResponseFileMustBeSole            = 'A response file (@file) must be the only command-line argument; no other switches or @ tokens are allowed.';

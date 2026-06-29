@@ -6,8 +6,8 @@ Slightly modified version of: https://github.com/gabr42/GpDelphiUnits *by* @gabr
 Changes to original: https://github.com/gabr42/GpDelphiUnits - GpCommandLineParser.pas
   - Code changes, at least some, are shared back to the original repository as pull requests. Primoz seems to be super busy, so I need to make my own version, to subject it to our code formatting rules. I bet it is better this way.
     If someone is committed to some formatting and coding standard for decades, I bet they are not too happy to have multiple standards in their own repository.
-  - Formatting changed to more standard
-  - Added possibility to have default as true boolean parameter, and ability to make it false:
+  - Formatting changed to a more standard style
+  - Added the possibility to have a boolean parameter default to true, with the ability to set it to false:
     - -BoolParam:False (1/0, true/false, t/f should be supported)
   - Default parameter switch in Windows is "-" (not the "/" character)
   - Added support for Enums
@@ -15,7 +15,7 @@ Changes to original: https://github.com/gabr42/GpDelphiUnits - GpCommandLinePars
   - Added support for object inheritance of the command line objects. So multiple applications can share common parameters with no need to duplicate code.
   - Some comments that **I** think are not needed, like version history, are removed, and some are moved into this readme.md etc...
 
-example parameter configuration
+Example parameter configuration:
 
 ```Delphi
 type
