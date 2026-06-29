@@ -446,18 +446,18 @@ type
 
 const
   {$IFDEF MSWINDOWS}
-    SWITCH_DELIMETERS: array [0..2] of string = ('--', '-', '/');
+    SWITCH_DELIMITERS: array [0..2] of string = ('--', '-', '/');
   {$ELSE}
-    SWITCH_DELIMETERS: array [0..1] of string = ('--', '-');
+    SWITCH_DELIMITERS: array [0..1] of string = ('--', '-');
   {$ENDIF}
-    PARAM_DELIMETERS : array [0..1] of Char = (':', '=');
+    PARAM_DELIMITERS : array [0..1] of Char = (':', '=');
 
   // Canonical prefixes used when RENDERING usage. Intentionally independent of
   // SWITCH_DELIMETERS (which governs PARSING and whose order changed when '--' was
   // promoted to first-tried). Short = single dash, long = double dash.
   USAGE_SHORT_PREFIX = '-';
-  USAGE_PARAM_DELIM  = ':';   // matches a real, parseable separator
-  USAGE_DESC_DELIM   = ' - '; // between the names column and the description (legacy two-column layout)
+  USAGE_PARAM_DELIMITER = ':';   // matches a real, parseable separator
+  USAGE_DESC_DELIMITER = ' - '; // between the names column and the description (legacy two-column layout)
 
   // Stacked usage detail layout (switch label / description / default) plus the
   // wrapped prototype. The numeric values are indent widths, in spaces.
@@ -1371,7 +1371,7 @@ begin
   AHasParamDelim := False;
 
   LSwitchBody := ASwitchRawValue;
-  for LSwitchDelim in SWITCH_DELIMETERS do
+  for LSwitchDelim in SWITCH_DELIMITERS do
     if StartsStr(LSwitchDelim, LSwitchBody) then
     begin
       LSwitchBody := ASwitchRawValue;
@@ -1389,7 +1389,7 @@ begin
     LName := LSwitchBody;
     LFirstDelimPos := 0;
 
-    for LParamDelim in PARAM_DELIMETERS do
+    for LParamDelim in PARAM_DELIMITERS do
     begin
       LDelimPos := Pos(LParamDelim, LName);
 
@@ -1914,7 +1914,7 @@ begin
   if (AData.SwitchType = stBoolean) or AData.ParamName.IsEmpty then
     Result := ''
   else
-    Result := USAGE_PARAM_DELIM + AData.ParamName;
+    Result := USAGE_PARAM_DELIMITER + AData.ParamName;
 end;
 
 function TUsageFormatter.SwitchLabel(const APrefix, AName: string; const AData: TSwitchData): string;
@@ -2098,7 +2098,7 @@ begin
       begin
         LDetail := LDetails[LIndex];
         if (CompactRight(LDetail) <> '') and
-           (LLeftWidth + Length(USAGE_DESC_DELIM) + Length(CompactRight(LDetail)) > AWrapAtColumn) then
+           (LLeftWidth + Length(USAGE_DESC_DELIMITER) + Length(CompactRight(LDetail)) > AWrapAtColumn) then
         begin
           LCompact := False;
           Break;
@@ -2116,7 +2116,7 @@ begin
         LRight[LIndex] := CompactRight(LDetails[LIndex]);
       end;
 
-      LResult.AddRange(CLPFormatTwoColumnBlock(LLeft, LRight, USAGE_DESC_DELIM, AWrapAtColumn));
+      LResult.AddRange(CLPFormatTwoColumnBlock(LLeft, LRight, USAGE_DESC_DELIMITER, AWrapAtColumn));
     end
     else
       for LDetail in LDetails do
