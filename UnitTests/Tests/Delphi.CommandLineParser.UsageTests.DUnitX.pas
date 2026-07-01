@@ -1,4 +1,4 @@
-unit Delphi.CommandLineParser.UsageTests.DUnitX;
+﻿unit Delphi.CommandLineParser.UsageTests.DUnitX;
 
 {
   WHY THIS UNIT EXISTS
