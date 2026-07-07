@@ -42,7 +42,7 @@ type
   [TestFixture('Examples.Fixture1','General Example Tests')]
   TMyExampleTests = class
   public
-    //Run the same test with mulitiple parameters.
+    //Run the same test with multiple parameters.
     //ideally we would like to implement this using
     //[TestCase('Case 1',[1,3,4])]
     //but the delphi compiler will not accept arrays of
@@ -56,6 +56,14 @@ type
     [TestCase('Case 2','3,4')]
     [TestCase('Case 3','5,6')]
     procedure TestOne(param1 : integer; param2 : integer);
+
+
+    [Test]
+    [AutoNameTestCase('1,2')]
+    [AutoNameTestCase('3,4')]
+    [AutoNameTestCase('5,6')]
+    [Category('auto')]
+    procedure TestAutoName(param1 : integer; param2 : integer);
 
     [TestCase('Case 3','Blah,1')]
     procedure AnotherTestMethod(const a : string; const b : integer);
@@ -189,13 +197,13 @@ end;
 procedure TMyExampleTests.IgnoreMePublic;
 begin
   TDUnitX.CurrentRunner.Status('IgnoreMePublic called');
-  raise Exception.Create('IgnoreMePublic was called when it has IgnoreAttibute !!!!');
+  raise Exception.Create('IgnoreMePublic was called when it has IgnoreAttribute !!!!');
 end;
 
 procedure TMyExampleTests.IgnoreMePublished;
 begin
   TDUnitX.CurrentRunner.Status('IgnoreMePublished called');
-  raise Exception.Create('IgnoreMePublished was called when it has IgnoreAttibute !!!!');
+  raise Exception.Create('IgnoreMePublished was called when it has IgnoreAttribute !!!!');
 end;
 
 procedure TMyExampleTests.LogMessageTypes;
@@ -217,12 +225,18 @@ end;
 
 procedure TMyExampleTests.AnotherTestMethod(const a: string; const b: integer);
 begin
-  TDUnitX.CurrentRunner.Status(Format('AnotherTestMethod called with %s %d',[a,b]));
+  TDUnitX.CurrentRunner.Status(Format('AnotherTestMethod called with %s %d',[a, b]));
+end;
+
+procedure TMyExampleTests.TestAutoName(param1, param2: integer);
+begin
+  TDUnitX.CurrentRunner.Status(Format('TestAutoName called with %d %d',[param1, param2]));
+
 end;
 
 procedure TMyExampleTests.TestCaseWithStrings(const AInput, AResult: string);
 begin
-  TDUnitX.CurrentRunner.Status(Format('TestCaseWithStrings called with %s %s',[AInput,AResult]));
+  TDUnitX.CurrentRunner.Status(Format('TestCaseWithStrings called with %s %s',[AInput, AResult]));
 end;
 
 procedure TMyExampleTests.TestError;
@@ -237,7 +251,7 @@ end;
 
 procedure TMyExampleTests.TestOne(param1 : integer; param2 : integer);
 begin
-  TDUnitX.CurrentRunner.Status(Format('TestOnce called with %d %d',[param1,param2]));
+  TDUnitX.CurrentRunner.Status(Format('TestOnce called with %d %d',[param1, param2]));
 end;
 
 procedure TMyExampleTests.TestTwo;
@@ -350,7 +364,7 @@ initialization
 //TMyExampleTests.ClassName;
 //TExampleFixture2.ClassName;
 //which is enough to make the compiler link the classes into the exe, but that seems a
-//bit redundent so I guess we'll just use manual registration. If you use the
+//bit redundant so I guess we'll just use manual registration. If you use the
 //{$STRONGLINKTYPES ON} compiler directive then it will link the TestFixtures in and you
 //can use RTTI. The downside to that is the resulting exe will potentially much larger.
 //Not sure which version {$STRONGLINKTYPES ON} was introduced so we'll allow RTTI and

@@ -79,7 +79,7 @@
 			<DCCReference Include="..\Source\DUnitX.InternalInterfaces.pas"/>
 			<DCCReference Include="..\Source\DUnitX.TestFramework.pas"/>
 			<DCCReference Include="..\Source\DUnitX.DUnitCompatibility.pas"/>
-			<DCCReference Include="..\Source\DUnitX.IoC.pas"/>
+			<DCCReference Include="..\Source\DUnitX.ServiceLocator.pas"/>
 			<DCCReference Include="..\Source\DUnitX.Utils.XML.pas"/>
 			<DCCReference Include="..\Source\DUnitX.StackTrace.JCL.pas"/>
 			<DCCReference Include="..\Source\DUnitX.StackTrace.MadExcept3.pas"/>
@@ -102,8 +102,8 @@
 			<DCCReference Include="..\Source\DUnitX.MemoryLeakMonitor.FastMM4.pas"/>
 			<DCCReference Include="DUnitX.Tests.MemoryLeaks.pas"/>
 			<DCCReference Include="..\Source\DUnitX.Extensibility.pas"/>
-			<DCCReference Include="..\Source\DUnitX.Extensibility.PluginManager.pas"/>
-			<DCCReference Include="..\Source\DUnitX.FixtureProviderPlugin.pas"/>
+			
+			<DCCReference Include="..\Source\DUnitX.FixtureProvider.pas"/>
 			<DCCReference Include="DUnitX.Tests.CommandLineParser.pas"/>
 			<DCCReference Include="..\Source\DUnitX.Filters.pas"/>
 			<DCCReference Include="..\Source\DUnitX.CategoryExpression.pas"/>

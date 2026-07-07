@@ -30,23 +30,22 @@ interface
 
 {$I DUnitX.inc}
 
-
 uses
-  {$IFDEF USE_NS}
+{$IFDEF USE_NS}
   System.Classes,
-  {$ELSE}
+{$ELSE}
   Classes,
-  {$ENDIF}
+{$ENDIF}
   DUnitX.TestFramework;
 
 implementation
 
 uses
   DUnitX.MemoryLeakMonitor.Default,
-  DUnitX.IoC;
+  DUnitX.ServiceLocator;
 
 type
-  TDUnitXFastMM4MemoryLeakMonitor = class(TInterfacedObject,IMemoryLeakMonitor)
+  TDUnitXFastMM4MemoryLeakMonitor = class(TInterfacedObject, IMemoryLeakMonitor)
   private
     FPreSetupAllocation : Int64;
     FPostSetupAllocation : Int64;
@@ -64,19 +63,17 @@ type
     procedure PreTearDown;
     procedure PostTearDown;
 
-    function SetUpMemoryAllocated: Int64;
-    function TearDownMemoryAllocated: Int64;
-    function TestMemoryAllocated: Int64;
+    function SetUpMemoryAllocated : Int64;
+    function TearDownMemoryAllocated : Int64;
+    function TestMemoryAllocated : Int64;
   end;
 
+  { TDUnitXFastMM4MemoryLeakMonitor }
 
-
-{ TDUnitXFastMM4MemoryLeakMonitor }
-
-function TDUnitXFastMM4MemoryLeakMonitor.GetMemoryAllocated: Int64;
+function TDUnitXFastMM4MemoryLeakMonitor.GetMemoryAllocated : Int64;
 var
-  st: TMemoryManagerState;
-  sb: TSmallBlockTypeState;
+  st : TMemoryManagerState;
+  sb : TSmallBlockTypeState;
 begin
   GetMemoryManagerState(st);
 
@@ -118,24 +115,24 @@ begin
   FPreTestAllocation := GetMemoryAllocated();
 end;
 
-function TDUnitXFastMM4MemoryLeakMonitor.SetUpMemoryAllocated: Int64;
+function TDUnitXFastMM4MemoryLeakMonitor.SetUpMemoryAllocated : Int64;
 begin
   Result := FPostSetupAllocation - FPreSetupAllocation;
 end;
 
-function TDUnitXFastMM4MemoryLeakMonitor.TearDownMemoryAllocated: Int64;
+function TDUnitXFastMM4MemoryLeakMonitor.TearDownMemoryAllocated : Int64;
 begin
   Result := FPostTearDownAllocation - FPreTearDownAllocation;
 end;
 
-function TDUnitXFastMM4MemoryLeakMonitor.TestMemoryAllocated: Int64;
+function TDUnitXFastMM4MemoryLeakMonitor.TestMemoryAllocated : Int64;
 begin
   Result := FPostTestAllocation - FPreTestAllocation;
 end;
 
 initialization
 {$IFDEF USE_FASTMM4_LEAK_MONITOR}
-  TDUnitXIoC.DefaultContainer.RegisterType<IMemoryLeakMonitor>(
+  TDUnitXServiceLocator.DefaultContainer.RegisterType<IMemoryLeakMonitor>(
     function : IMemoryLeakMonitor
     begin
       result := TDUnitXFastMM4MemoryLeakMonitor.Create;

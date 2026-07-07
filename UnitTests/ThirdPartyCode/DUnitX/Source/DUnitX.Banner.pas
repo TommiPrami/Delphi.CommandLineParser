@@ -28,19 +28,27 @@ unit DUnitX.Banner;
 
 interface
 
+{$I DUnitX.inc}
 
 procedure ShowBanner;
 
 implementation
 
 uses
+{$IFDEF USE_NS}
+  System.DateUtils,
+  System.SysUtils,
+{$ELSE}
+  DateUtils,
+  SysUtils,
+{$ENDIF}
   DUnitX.ConsoleWriter.Base,
-  DUnitX.IoC;
-
+  DUnitX.ServiceLocator;
 
 procedure ShowBanner;
 var
   consoleWriter : IDUnitXConsoleWriter;
+  yr : integer;
 
   procedure WriteLine(const value : string);
   begin
@@ -50,14 +58,15 @@ var
       System.Writeln(value);
   end;
 
-
 begin
-  consoleWriter := TDUnitXIoC.DefaultContainer.Resolve<IDUnitXConsoleWriter>();
+  consoleWriter := TDUnitXServiceLocator.DefaultContainer.Resolve<IDUnitXConsoleWriter>();
   if consoleWriter <> nil then
     consoleWriter.SetColour(ccBrightWhite, ccDefault);
 
+  yr := YearOf(Today);
+
   WriteLine('**********************************************************************');
-  WriteLine('*        DUnitX - (c) 2015-2020 Vincent Parrett & Contributors       *');
+  WriteLine(Format('*        DUnitX - (c) 2015-%d Vincent Parrett & Contributors       *', [yr]));
   WriteLine('*                                                                    *');
   WriteLine('*        License - http://www.apache.org/licenses/LICENSE-2.0        *');
   WriteLine('**********************************************************************');
@@ -67,3 +76,4 @@ begin
 end;
 
 end.
+

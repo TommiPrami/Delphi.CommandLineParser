@@ -241,7 +241,7 @@
         <DCCReference Include="..\Source\DUnitX.DUnitCompatibility.pas"/>
         <DCCReference Include="..\Source\DUnitX.Generics.pas"/>
         <DCCReference Include="..\Source\DUnitX.InternalInterfaces.pas"/>
-        <DCCReference Include="..\Source\DUnitX.IoC.pas"/>
+        <DCCReference Include="..\Source\DUnitX.ServiceLocator.pas"/>
         <DCCReference Include="..\Source\DUnitX.Loggers.Console.pas"/>
         <DCCReference Include="..\Source\DUnitX.Loggers.Text.pas"/>
         <DCCReference Include="..\Source\DUnitX.Loggers.XML.NUnit.pas"/>
@@ -267,7 +267,7 @@
         <DCCReference Include="..\Source\DUnitX.CommandLine.OptionDef.pas"/>
         <DCCReference Include="..\Source\DUnitX.CommandLine.Options.pas"/>
         <DCCReference Include="..\Source\DUnitX.CommandLine.Parser.pas"/>
-        <DCCReference Include="..\Source\DUnitX.FixtureProviderPlugin.pas"/>
+        <DCCReference Include="..\Source\DUnitX.FixtureProvider.pas"/>
         <DCCReference Include="..\Source\DUnitX.Timeout.pas"/>
         <DCCReference Include="..\Source\DUnitX.Attributes.pas"/>
         <BuildConfiguration Include="Debug">

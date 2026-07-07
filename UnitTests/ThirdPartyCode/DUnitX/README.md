@@ -14,19 +14,19 @@ DUnitX Features
  * API Documented using Xml-Doc
  * Console Based Runner
  * XML Logging
-   * produces output compatible with NUnit (compatible with CI servers like [ContinuaCI](http://www.finalbuilder.com/continua-ci))
+   * produces output compatible with NUnit (compatible with CI servers like [ContinuaCI](https://www.finalbuilder.com/continua-ci))
    * produces output compatible with JUnit (compatible with [Gitlab CI](https://docs.gitlab.com/ee/ci/unit_test_reports.html))
  * Cross platform currently supporting:
     * Win32,Win64 and OSX Compilers.
  * Limited backwards compatibility with DUnit test classes. 
- * [Wizard](http://www.finalbuilder.com/Resources/Blogs/PostId/702/dunitx-has-a-wizard) for creating new tests.
+ * [Wizard](https://www.finalbuilder.com/Resources/Blogs/dunitx-has-a-wizard) for creating new tests.
 
 DUnitX Planned Features
 =======================
 
 This is far from a complete list, but a few planned features are listed here to help indicate future direction.
 
- * ~~GUI Test Runner~~ - Use TestInsight
+ * ~~GUI Test Runner~~ - Use [TestInsight](https://bitbucket.org/sglienke/testinsight/wiki/Home)
  * Multi-threaded tests - the ability to have test fixtures run in their own
   threads.
  * Remote logging - Simple way to run tests on remote machines (just an idea at this point) 

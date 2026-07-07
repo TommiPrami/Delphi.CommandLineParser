@@ -1,0 +1,88 @@
+﻿package VSoft.DUnitXWinR;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$LIBSUFFIX '180'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl;
+
+contains
+  DUnitX.Assert.Ex in '..\..\source\DUnitX.Assert.Ex.pas',
+  DUnitX.Assert in '..\..\source\DUnitX.Assert.pas',
+  DUnitX.Attributes in '..\..\source\DUnitX.Attributes.pas',
+  DUnitX.AutoDetect.Console in '..\..\source\DUnitX.AutoDetect.Console.pas',
+  DUnitX.Banner in '..\..\source\DUnitX.Banner.pas',
+  DUnitX.CategoryExpression in '..\..\source\DUnitX.CategoryExpression.pas',
+  DUnitX.CommandLine.OptionDef in '..\..\source\DUnitX.CommandLine.OptionDef.pas',
+  DUnitX.CommandLine.Options in '..\..\source\DUnitX.CommandLine.Options.pas',
+  DUnitX.CommandLine.Parser in '..\..\source\DUnitX.CommandLine.Parser.pas',
+  DUnitX.ComparableFormat.Csv in '..\..\source\DUnitX.ComparableFormat.Csv.pas',
+  DUnitX.ComparableFormat in '..\..\source\DUnitX.ComparableFormat.pas',
+  DUnitX.ComparableFormat.Xml in '..\..\source\DUnitX.ComparableFormat.Xml.pas',
+  DUnitX.ConsoleWriter.Base in '..\..\source\DUnitX.ConsoleWriter.Base.pas',
+  DUnitX.Constants in '..\..\source\DUnitX.Constants.pas',
+  DUnitX.DUnitCompatibility in '..\..\source\DUnitX.DUnitCompatibility.pas',
+  DUnitX.Exceptions in '..\..\source\DUnitX.Exceptions.pas',
+  DUnitX.Extensibility in '..\..\source\DUnitX.Extensibility.pas',
+  DUnitX.FilterBuilder in '..\..\source\DUnitX.FilterBuilder.pas',
+  DUnitX.Filters in '..\..\source\DUnitX.Filters.pas',
+  DUnitX.FixtureBuilder in '..\..\source\DUnitX.FixtureBuilder.pas',
+  DUnitX.FixtureProvider in '..\..\source\DUnitX.FixtureProvider.pas',
+  DUnitX.FixtureResult in '..\..\source\DUnitX.FixtureResult.pas',
+  DUnitX.Generics in '..\..\source\DUnitX.Generics.pas',
+  DUnitX.Helpers in '..\..\source\DUnitX.Helpers.pas',
+  DUnitX.Init in '..\..\source\DUnitX.Init.pas',
+  DUnitX.InternalDataProvider in '..\..\source\DUnitX.InternalDataProvider.pas',
+  DUnitX.InternalInterfaces in '..\..\source\DUnitX.InternalInterfaces.pas',
+  DUnitX.Loggers.Console in '..\..\source\DUnitX.Loggers.Console.pas',
+  DUnitX.Loggers.Null in '..\..\source\DUnitX.Loggers.Null.pas',
+  DUnitX.Loggers.Text in '..\..\source\DUnitX.Loggers.Text.pas',
+  DUnitX.Loggers.XML.JUnit in '..\..\source\DUnitX.Loggers.XML.JUnit.pas',
+  DUnitX.Loggers.XML.NUnit in '..\..\source\DUnitX.Loggers.XML.NUnit.pas',
+  DUnitX.Loggers.XML.xUnit in '..\..\source\DUnitX.Loggers.XML.xUnit.pas',
+  DUnitX.MemoryLeakMonitor.Default in '..\..\source\DUnitX.MemoryLeakMonitor.Default.pas',
+  DUnitX.MemoryLeakMonitor.FastMM4 in '..\..\source\DUnitX.MemoryLeakMonitor.FastMM4.pas',
+  DUnitX.OptionsDefinition in '..\..\source\DUnitX.OptionsDefinition.pas',
+  DUnitX.ResStrs in '..\..\source\DUnitX.ResStrs.pas',
+  DUnitX.RunResults in '..\..\source\DUnitX.RunResults.pas',
+  DUnitX.ServiceLocator in '..\..\source\DUnitX.ServiceLocator.pas',
+  DUnitX.Test in '..\..\source\DUnitX.Test.pas',
+  DUnitX.TestDataProvider in '..\..\source\DUnitX.TestDataProvider.pas',
+  DUnitX.TestFixture in '..\..\source\DUnitX.TestFixture.pas',
+  DUnitX.TestFramework in '..\..\source\DUnitX.TestFramework.pas',
+  DUnitX.TestNameParser in '..\..\source\DUnitX.TestNameParser.pas',
+  DUnitX.TestResult in '..\..\source\DUnitX.TestResult.pas',
+  DUnitX.TestRunner in '..\..\source\DUnitX.TestRunner.pas',
+  DUnitX.Timeout in '..\..\source\DUnitX.Timeout.pas',
+  DUnitX.Types in '..\..\source\DUnitX.Types.pas',
+  DUnitX.Utils in '..\..\source\DUnitX.Utils.pas',
+  DUnitX.Utils.XML in '..\..\source\DUnitX.Utils.XML.pas',
+  DUnitX.WeakReference in '..\..\source\DUnitX.WeakReference.pas',
+  DUnitX.Windows.Console in '..\..\source\DUnitX.Windows.Console.pas';
+end.

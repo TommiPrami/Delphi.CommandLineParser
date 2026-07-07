@@ -1,0 +1,170 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{1D913DDF-C3A2-4A6D-AAC9-F71B4292B357}</ProjectGuid>
+        <MainSource>VSoft.DUnitXWinR.dpk</MainSource>
+        <ProjectVersion>14.4</ProjectVersion>
+        <FrameworkType>None</FrameworkType>
+        <Base>true</Base>
+        <Config Condition="'$(Config)'==''">Release</Config>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <TargetedPlatforms>3</TargetedPlatforms>
+        <AppType>Package</AppType>
+        <ProjectName Condition="'$(ProjectName)'==''">VSoft.DUnitXWinR</ProjectName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
+        <Cfg_1>true</Cfg_1>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
+        <Cfg_1_Win32>true</Cfg_1_Win32>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+        <Cfg_1_Win64>true</Cfg_1_Win64>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
+        <Cfg_2>true</Cfg_2>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64)'!=''">
+        <Cfg_2_Win64>true</Cfg_2_Win64>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base)'!=''">
+        <DllSuffix>180</DllSuffix>
+        <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
+        <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
+        <GenPackage>true</GenPackage>
+        <GenDll>true</GenDll>
+        <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
+        <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
+        <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
+        <DCC_E>false</DCC_E>
+        <DCC_N>false</DCC_N>
+        <DCC_S>false</DCC_S>
+        <DCC_F>false</DCC_F>
+        <DCC_K>false</DCC_K>
+        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <SanitizedProjectName>VSoft.DUnitXWinR</SanitizedProjectName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1)'!=''">
+        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+        <DCC_Optimize>false</DCC_Optimize>
+        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
+        <DCC_RemoteDebug>true</DCC_RemoteDebug>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <DCC_RemoteDebug>false</DCC_RemoteDebug>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+        <DCC_DebugInformation>false</DCC_DebugInformation>
+    </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="$(MainSource)">
+            <MainSource>MainSource</MainSource>
+        </DelphiCompile>
+        <DCCReference Include="rtl.dcp"/>
+        <DCCReference Include="..\..\source\DUnitX.Assert.Ex.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Assert.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Attributes.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.AutoDetect.Console.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Banner.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.CategoryExpression.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.CommandLine.OptionDef.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.CommandLine.Options.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.CommandLine.Parser.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.ComparableFormat.Csv.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.ComparableFormat.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.ComparableFormat.Xml.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.ConsoleWriter.Base.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Constants.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.DUnitCompatibility.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Exceptions.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Extensibility.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.FilterBuilder.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Filters.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.FixtureBuilder.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.FixtureProvider.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.FixtureResult.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Generics.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Helpers.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Init.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.InternalDataProvider.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.InternalInterfaces.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Loggers.Console.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Loggers.Null.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Loggers.Text.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Loggers.XML.JUnit.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Loggers.XML.NUnit.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Loggers.XML.xUnit.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.MemoryLeakMonitor.Default.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.MemoryLeakMonitor.FastMM4.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.OptionsDefinition.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.ResStrs.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.RunResults.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.ServiceLocator.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Test.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.TestDataProvider.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.TestFixture.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.TestFramework.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.TestNameParser.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.TestResult.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.TestRunner.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Timeout.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Types.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Utils.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Utils.XML.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.WeakReference.pas"/>
+        <DCCReference Include="..\..\source\DUnitX.Windows.Console.pas"/>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Delphi.Personality.12</Borland.Personality>
+        <Borland.ProjectType>Package</Borland.ProjectType>
+        <BorlandProject>
+            <Delphi.Personality>
+                <Source>
+                    <Source Name="MainSource">VSoft.DUnitXWinR.dpk</Source>
+                </Source>
+            </Delphi.Personality>
+            <Platforms>
+                <Platform value="Win32">true</Platform>
+                <Platform value="Win64">true</Platform>
+            </Platforms>
+        </BorlandProject>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
+</Project>
