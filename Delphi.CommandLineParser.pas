@@ -468,7 +468,7 @@ type
   strict protected
     function CheckAttributes: Boolean;
     function ExpandResponseFile(var ACommandLine: string): Boolean;
-    function FileSystemCheck(const ASwitchData: TSwitchData): TFSCheckResult;
+    function FileSystemCheck(const ASwitchData: TSwitchData; var AFileOrDirectoryNotFound: string): TFSCheckResult;
     function FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
     function BuildCommandLineFromParams: string;
     function GetErrorInfo: TCLPErrorInfo; inline;
@@ -572,7 +572,7 @@ begin
   begin
     WriteLn('');
     WriteLn('  * Error in switch:');
-    WriteLn('    - ' + AParser.ErrorInfo.SwitchName + ' - ' + AParser.ErrorInfo.Text.QuotedString('"'));
+    WriteLn('    - ' + AParser.ErrorInfo.SwitchName + ' - ' + AParser.ErrorInfo.Text);
   end;
 end;
 
@@ -1192,7 +1192,7 @@ begin
   Result := True;
 end;
 
-function TCommandLineParser.FileSystemCheck(const ASwitchData: TSwitchData): TFSCheckResult;
+function TCommandLineParser.FileSystemCheck(const ASwitchData: TSwitchData; var AFileOrDirectoryNotFound: string): TFSCheckResult;
 var
   LStringValue: string;
   LStringArray: TArray<string>;
@@ -1210,13 +1210,19 @@ begin
   begin
     for var LFileName in LStringArray do
       if not FileExists(LFileName) then
+      begin
+        AFileOrDirectoryNotFound := LFileName;
         Exit(fscFileMissing);
+      end;
   end
   else if soDirectoryMustExist in ASwitchData.Options then
   begin
     for var LDirectory in LStringArray do
       if not DirectoryExists(LDirectory) then
+      begin
+        AFileOrDirectoryNotFound := LDirectory;
         Exit(fscDirectoryMissing);
+      end;
   end;
 end;
 
@@ -1586,12 +1592,13 @@ end;
 
 function TCommandLineParser.ProcessCommandLine(const ACommandData: TObject; const ACommandLine: string): Boolean;
 var
-  LSwitchData: TSwitchData;
   LCommandLine: string;
   LCurrentRawParameter: string;
-  LParamValue: string; // Value extracted from after the parameter delimiter, e.g. 'foo' in '-name:foo'.
+  LFileSystemObjectNotFound: string;
   LHasParamDelim: Boolean;
+  LParamValue: string; // Value extracted from after the parameter delimiter, e.g. 'foo' in '-name:foo'.
   LPosition: Integer;
+  LSwitchData: TSwitchData;
 begin
   Result := True;
 
@@ -1705,11 +1712,12 @@ begin
     begin
       if LSwitchData.SwitchType in [stString, stStringArray] then
       begin
-        case FileSystemCheck(LSwitchData) of
-          fscFileMissing: Exit(SetError(ekFileDoesNotExist, edFileDoesNotExist, SFileDoesNotExist,
+        case FileSystemCheck(LSwitchData, LFileSystemObjectNotFound) of
+          fscFileMissing: Exit(SetError(ekFileDoesNotExist, edFileDoesNotExist, SFileDoesNotExist + ': '
+            + LFileSystemObjectNotFound.QuotedString('"'),
             LSwitchData.Position, LSwitchData.DisplayName));
-          fscDirectoryMissing: Exit(SetError(ekDirectoryDoesNotExist, edDirectoryDoesNotExist, SDirectoryDoesNotExist,
-            LSwitchData.Position, LSwitchData.DisplayName));
+          fscDirectoryMissing: Exit(SetError(ekDirectoryDoesNotExist, edDirectoryDoesNotExist, SDirectoryDoesNotExist + ': '
+            + LFileSystemObjectNotFound.QuotedString('"'), LSwitchData.Position, LSwitchData.DisplayName));
         end;
       end
       else
