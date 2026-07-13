@@ -327,7 +327,6 @@ resourcestring
   SMissingNameForProperty            = 'Missing name for property.';
   SMissingPositionalDefinition       = 'Missing positional parameter definition.';
   SOnlyOnePositionRestAllowed        = 'Only one CLPPositionRest property is allowed.';
-  SOptions                           = '[options]';
   SPositionMustBeGreaterOrEqualTo1   = 'Position must be greater than or equal to 1.';
   SRequiredParameterWasNotProvided   = 'Required parameter was not provided.';
   SRequiredAfterOptionalForbidden    = 'Required positional parameters must not appear after optional positional parameters.';
