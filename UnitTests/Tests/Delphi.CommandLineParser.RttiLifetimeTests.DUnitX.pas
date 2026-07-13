@@ -115,7 +115,9 @@ begin
   // Churn many parser/target pairs so that, if a switch ever returned a property
   // from an already-freed pool, the freed block is very likely reused/overwritten
   // before use - turning the latent corruption into a deterministic failure.
-  for var I := 1 to 50 do
+  var LIndex := 1;
+
+  while LIndex <= 50 do
   begin
     var LParser := CreateCommandLineParser;
     var LOpts := TAllTypes.Create;
@@ -126,6 +128,8 @@ begin
     finally
       LOpts.Free;
     end;
+
+    Inc(LIndex);
   end;
 end;
 

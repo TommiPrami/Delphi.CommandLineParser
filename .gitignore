@@ -72,3 +72,4 @@ modules/
 *.dsv
 /UnitTests/Win32
 UnitTests/Win32/Debug/dunitx-results.xml
+UnitTests/DelphiCommandlineParserUnitTests.ficfg
