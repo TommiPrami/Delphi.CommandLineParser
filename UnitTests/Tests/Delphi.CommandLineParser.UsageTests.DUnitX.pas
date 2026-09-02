@@ -60,6 +60,15 @@ type
     [Test] procedure WrapTokens_ContinuationIsIndented;
     [Test] procedure WrapTokens_LongTokenKeptIntactOnOwnLine;
     [Test] procedure WrapTokens_DisabledWhenColumnZero;
+
+    // CLPMarkShortName
+    [Test] procedure MarkShortName_PrefixIsBracketed;
+    [Test] procedure MarkShortName_MiddleIsBracketed;
+    [Test] procedure MarkShortName_PrefixPreferredRegardlessOfCasing;
+    [Test] procedure MarkShortName_SameCasingOccurrencePreferredElsewhere;
+    [Test] procedure MarkShortName_FallsBackToFirstOccurrenceOfAnyCasing;
+    [Test] procedure MarkShortName_NotFoundReturnsLongFormUnchanged;
+    [Test] procedure MarkShortName_EmptyShortNameReturnsLongFormUnchanged;
   end;
 
   [TestFixture]
@@ -82,6 +91,13 @@ type
     [Test] procedure SkippedPropertyAbsent;
     [Test] procedure PositionalNotListedTwiceInPrototype;
     [Test] procedure PrototypeWrapsOnTokenBoundaries;
+    // Short name marked inside the long name ('-[R]estore', '-Use[Se]rvice').
+    [Test] procedure ShortNameMarkedInsideLongName;
+    [Test] procedure MultiCharShortNameMarkedInsideLongName;
+    [Test] procedure MarkedShortNameKeepsValueSuffix;
+    [Test] procedure ShortNameNotInLongNameListedSeparately;
+    [Test] procedure ShortNameMarkedInEveryLongNameContainingIt;
+    [Test] procedure PrototypeUsesPlainLongName;
   end;
 
 implementation
@@ -187,6 +203,29 @@ type
     [CLPLongName('DeltaFour'), CLPDescription('d', '<v>')] property D: string read FD write FD;
     [CLPLongName('EpsilonFive'), CLPDescription('e', '<v>')] property E: string read FE write FE;
     [CLPLongName('ZetaSix'), CLPDescription('f', '<v>')] property F: string read FF write FF;
+  end;
+
+  TMarkedShortNames = class
+  strict private
+    FQuiet: Boolean;
+    FRestore: Boolean;
+    FServer: string;
+    FSource: string;
+    FUseService: Boolean;
+  public
+    [CLPName('R'), CLPLongName('Restore'), CLPDescription('Restore the database', '<bool>')]
+    property Restore: Boolean read FRestore write FRestore;
+    [CLPName('Se'), CLPLongName('UseService'), CLPDescription('Run as a service', '<bool>')]
+    property UseService: Boolean read FUseService write FUseService;
+    // 'q' does not occur in 'Silent': the short name is listed separately.
+    [CLPName('q'), CLPLongName('Silent'), CLPDescription('No console output', '<bool>')]
+    property Quiet: Boolean read FQuiet write FQuiet;
+    // 'Srv' does not occur in 'Server' as a whole: listed separately, with the value suffix on both.
+    [CLPName('Srv'), CLPLongName('Server'), CLPDescription('Server host', '<host>'), CLPDefault('')]
+    property Server: string read FServer write FServer;
+    // 'S' occurs in both long names: marked in both.
+    [CLPName('S'), CLPLongName('DataSource'), CLPLongName('Source'), CLPDescription('Data source', '<path>'), CLPDefault('')]
+    property Source: string read FSource write FSource;
   end;
 
 { ===== TUsageHelperTests ================================================== }
@@ -318,6 +357,52 @@ begin
   Assert.AreEqual('a b c', LLines[0]);
 end;
 
+procedure TUsageHelperTests.MarkShortName_PrefixIsBracketed;
+begin
+  Assert.AreEqual('[R]estore', CLPMarkShortName('Restore', 'R'));
+end;
+
+procedure TUsageHelperTests.MarkShortName_MiddleIsBracketed;
+begin
+  Assert.AreEqual('Use[Se]rvice', CLPMarkShortName('UseService', 'Se'));
+end;
+
+procedure TUsageHelperTests.MarkShortName_PrefixPreferredRegardlessOfCasing;
+begin
+  // 'Restore' also contains a lowercase 'r' later on, but the start of the long
+  // name is the natural short form and wins. The long form's casing is kept.
+  Assert.AreEqual('[R]estore', CLPMarkShortName('Restore', 'r'));
+  Assert.AreEqual('[Se]rvice', CLPMarkShortName('Service', 'se'));
+end;
+
+procedure TUsageHelperTests.MarkShortName_SameCasingOccurrencePreferredElsewhere;
+begin
+  // 'UseService' contains 's'/'se' twice ('Use', 'Service'); away from the start
+  // the occurrence with the same casing as the short name wins.
+  Assert.AreEqual('Use[Se]rvice', CLPMarkShortName('UseService', 'Se'));
+  Assert.AreEqual('Use[S]ervice', CLPMarkShortName('UseService', 'S'));
+end;
+
+procedure TUsageHelperTests.MarkShortName_FallsBackToFirstOccurrenceOfAnyCasing;
+begin
+  // No prefix and no same-casing occurrence of 'sE': the first one of any
+  // casing is used, keeping the long form's casing.
+  Assert.AreEqual('U[se]Service', CLPMarkShortName('UseService', 'sE'));
+  Assert.AreEqual('V[e]rbose', CLPMarkShortName('Verbose', 'e'));
+end;
+
+procedure TUsageHelperTests.MarkShortName_NotFoundReturnsLongFormUnchanged;
+begin
+  Assert.AreEqual('Silent', CLPMarkShortName('Silent', 'q'));
+  // Every letter of 'Srv' is in 'Server', but not as one piece.
+  Assert.AreEqual('Server', CLPMarkShortName('Server', 'Srv'));
+end;
+
+procedure TUsageHelperTests.MarkShortName_EmptyShortNameReturnsLongFormUnchanged;
+begin
+  Assert.AreEqual('Silent', CLPMarkShortName('Silent', ''));
+end;
+
 { ===== TUsageIntegrationTests ============================================= }
 
 procedure TUsageIntegrationTests.LongNameUsesSingleDash;
@@ -346,10 +431,11 @@ begin
     LParser.Parse('', LOpts);
     var LUsage := LParser.Usage;
 
-    var LIdx := IndexOfDetailLine(LUsage, 'Verbose');
-    Assert.IsTrue(LIdx >= 0, 'Verbose label row should exist');
-    Assert.IsTrue(ContainsStr(LUsage[LIdx], '-v'), 'short name should be present');
-    Assert.IsFalse(ContainsStr(LUsage[LIdx], '--v'), 'short name must use a single dash');
+    // The short name 'v' occurs in 'Verbose', so it is marked inside the long
+    // name rather than listed on its own.
+    var LIdx := IndexOfDetailLine(LUsage, '-[V]erbose');
+    Assert.IsTrue(LIdx >= 0, 'Verbose label row with the marked short name should exist');
+    Assert.IsFalse(ContainsStr(LUsage[LIdx], '--'), 'short name must use a single dash');
   finally
     LOpts.Free;
   end;
@@ -591,6 +677,107 @@ begin
     for var I := 1 to LProtoLineCount - 1 do
       Assert.IsTrue(StartsStr('  ', LUsage[I]),
         'prototype continuation line must be indented two spaces');
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TUsageIntegrationTests.ShortNameMarkedInsideLongName;
+begin
+  var LParser := CreateCommandLineParser;
+  var LOpts := TMarkedShortNames.Create;
+  try
+    LParser.Parse('', LOpts);
+    var LUsage := LParser.Usage;
+
+    Assert.IsTrue(IndexOfDetailLine(LUsage, '-[R]estore') >= 0,
+      'short name should be marked inside the long name');
+    Assert.AreEqual(-1, IndexOfDetailLine(LUsage, '-R,'),
+      'a marked short name must not be listed separately');
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TUsageIntegrationTests.MultiCharShortNameMarkedInsideLongName;
+begin
+  var LParser := CreateCommandLineParser;
+  var LOpts := TMarkedShortNames.Create;
+  try
+    LParser.Parse('', LOpts);
+    var LUsage := LParser.Usage;
+
+    Assert.IsTrue(IndexOfDetailLine(LUsage, '-Use[Se]rvice') >= 0,
+      'multi-character short name should be marked inside the long name');
+    Assert.AreEqual(-1, IndexOfDetailLine(LUsage, '-Se,'),
+      'a marked short name must not be listed separately');
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TUsageIntegrationTests.MarkedShortNameKeepsValueSuffix;
+begin
+  var LParser := CreateCommandLineParser;
+  var LOpts := TMarkedShortNames.Create;
+  try
+    LParser.Parse('', LOpts);
+    var LUsage := LParser.Usage;
+
+    Assert.IsTrue(IndexOfDetailLine(LUsage, '-[S]ource:<path>') >= 0,
+      'the value placeholder should follow the marked long name');
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TUsageIntegrationTests.ShortNameNotInLongNameListedSeparately;
+begin
+  var LParser := CreateCommandLineParser;
+  var LOpts := TMarkedShortNames.Create;
+  try
+    LParser.Parse('', LOpts);
+    var LUsage := LParser.Usage;
+
+    Assert.IsTrue(IndexOfDetailLine(LUsage, '-q, -Silent') >= 0,
+      'a short name that is not part of the long name should be listed first, on its own');
+    Assert.IsTrue(IndexOfDetailLine(LUsage, '-Srv:<host>, -Server:<host>') >= 0,
+      'same for a multi-character short name, with the value placeholder on both');
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TUsageIntegrationTests.ShortNameMarkedInEveryLongNameContainingIt;
+begin
+  var LParser := CreateCommandLineParser;
+  var LOpts := TMarkedShortNames.Create;
+  try
+    LParser.Parse('', LOpts);
+    var LUsage := LParser.Usage;
+
+    Assert.IsTrue(IndexOfDetailLine(LUsage, '-Data[S]ource:<path>, -[S]ource:<path>') >= 0,
+      'the short name should be marked in every alternate long name that contains it');
+  finally
+    LOpts.Free;
+  end;
+end;
+
+procedure TUsageIntegrationTests.PrototypeUsesPlainLongName;
+begin
+  var LParser := CreateCommandLineParser;
+  var LOpts := TMarkedShortNames.Create;
+  try
+    LParser.Parse('', LOpts);
+    var LProto := PrototypeText(LParser.Usage);
+
+    // The prototype line keeps the plain long name; the marked form is only
+    // used in the detail block, where it would otherwise fight with the
+    // optional-switch brackets.
+    Assert.IsTrue(ContainsStr(LProto, '[-Restore]'), 'prototype should use the plain long name: ' + LProto);
+    Assert.IsTrue(ContainsStr(LProto, '[-UseService]'), 'prototype should use the plain long name: ' + LProto);
+    Assert.IsFalse(ContainsStr(LProto, '-[R]'), 'prototype must not mark the short name: ' + LProto);
+    Assert.IsFalse(ContainsStr(LProto, '[Se]'), 'prototype must not mark the short name: ' + LProto);
   finally
     LOpts.Free;
   end;

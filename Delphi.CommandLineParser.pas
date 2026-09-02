@@ -10,7 +10,18 @@ uses
 
 type
   ///  <summary>
-  ///    Specifies the short (one-letter) name for the switch.
+  ///    Specifies the short name for the switch, e.g. 'r' or 'Se'.
+  ///
+  ///    A short name may be longer than one character, but it must be shorter
+  ///    than every long name of the switch (the CLPLongName values, or the
+  ///    property name when no CLPLongName is given). A switch that has no long
+  ///    name at all may use a short name of any length. Positional switches are
+  ///    not checked; for them the short name is only a display name.
+  ///
+  ///    Besides '-name:value', a short name also accepts the value attached
+  ///    directly to it, e.g. '-nValue'. When the short name occurs inside a
+  ///    long name, Usage marks it there instead of listing it separately:
+  ///    '-[R]estore', '-Use[Se]rvice'.
   ///  </summary>
   CLPNameAttribute = class(TCustomAttribute)
   strict private
@@ -195,7 +206,7 @@ type
     edMissingRequiredSwitch,       // SRequiredSwitchWasNotProvided
     edPositionNotPositive,         // SPositionMustBeGreaterOrEqualTo1
     edRequiredAfterOptional,       // SRequiredAfterOptionalForbidden
-    edShortNameTooLong,            // SShortNameMustBeOneLetterLong
+    edShortNameTooLong,            // SShortNameMustBeShorterThanLongName
     edTooManyPositionalArguments,  // STooManyPositionalArguments
     edUnknownSwitch,               // SUnknownSwitch
     edUnsupportedPropertyType,     // SUnsupportedPropertyType
@@ -314,6 +325,19 @@ type
   ///  </summary>
   function CLPWrapTokens(const ATokens: TArray<string>; const AWrapAtColumn, AContinuationIndent: Integer): TArray<string>;
 
+  ///  <summary>
+  ///    Returns ALongForm with the occurrence of AShortName wrapped in '[' and
+  ///    ']', keeping the long form's own casing: ('Restore', 'r') gives
+  ///    '[R]estore' and ('UseService', 'Se') gives 'Use[Se]rvice'.
+  ///
+  ///    Which occurrence is marked: the start of the long name when the short
+  ///    name is a (case-insensitive) prefix of it; otherwise the first occurrence
+  ///    with the same casing ('Se' marks 'Service', not the 'se' in 'Use');
+  ///    otherwise the first occurrence of any casing. Returns ALongForm
+  ///    unchanged when AShortName is empty or does not occur in it.
+  ///  </summary>
+  function CLPMarkShortName(const ALongForm, AShortName: string): string;
+
 implementation
 
 uses
@@ -331,7 +355,7 @@ resourcestring
   SRequiredParameterWasNotProvided   = 'Required parameter was not provided.';
   SRequiredAfterOptionalForbidden    = 'Required positional parameters must not appear after optional positional parameters.';
   SRequiredSwitchWasNotProvided      = 'Required switch was not provided.';
-  SShortNameMustBeOneLetterLong      = 'Short name must be one letter long.';
+  SShortNameMustBeShorterThanLongName = 'Short name must be shorter than the long name';
   STooManyPositionalArguments        = 'Too many positional arguments.';
   SPositionRestMustBeString          = 'Type of a CLPPositionRest property must be a string.';
   SUnknownSwitch                     = 'Unknown switch.';
@@ -469,6 +493,7 @@ type
     function ExpandResponseFile(var ACommandLine: string): Boolean;
     function FileSystemCheck(const ASwitchData: TSwitchData; var AFileOrDirectoryNotFound: string): TFSCheckResult;
     function FindExtendableSwitch(const ASwitchName: string; var AParam: string; var AData: TSwitchData): Boolean;
+    function FindShortNameSwitch(const ASwitchBody: string; var AParam: string; var AData: TSwitchData): Boolean;
     function BuildCommandLineFromParams: string;
     function GetErrorInfo: TCLPErrorInfo; inline;
     function GetHelpRequested: Boolean;
@@ -508,7 +533,9 @@ type
     function ParamSuffix(const AData: TSwitchData): string;
     /// One alternate label, e.g. '-v' / '--verbose' / '--count:<int>'.
     function SwitchLabel(const APrefix, AName: string; const AData: TSwitchData): string;
-    /// The full names column for a switch, e.g. '-c:<int>, --count:<int>'.
+    /// The full names column for a switch. The short name is marked inside the
+    /// long name when it occurs there ('-[C]ount:<int>'), otherwise it is listed
+    /// separately ('-x:<int>, -Count:<int>').
     function NamesColumn(const AData: TSwitchData): string;
     /// The single name used in the compact prototype line.
     function PrimaryName(const AData: TSwitchData): string;
@@ -1034,7 +1061,8 @@ end;
 ///   in the current implementation as long name is set to property name by default,
 ///   but the test is still left in for future-proofing.)
 ///
-///   Short names (when provided) must be one letter long.
+///   Short names (when provided) must be shorter than every long name of the
+///   switch. A switch without long names may use a short name of any length.
 ///
 ///   At the same time creates an array of references to positional attributes,
 ///   FPositionals.
@@ -1106,11 +1134,14 @@ begin
     if not (soPositional in LSwitchData.Options) then
       if (LSwitchData.Name = '') and (Length(LSwitchData.LongNames) = 0) then
         Exit(SetError(ekNameNotDefined, edMissingNameForProperty, SMissingNameForProperty, 0, LSwitchData.PropertyName))
-      else if (LSwitchData.Name <> '') and (Length(LSwitchData.Name) <> 1) then
-        Exit(SetError(ekShortNameTooLong, edShortNameTooLong, SShortNameMustBeOneLetterLong, 0, LSwitchData.Name))
       else for LLongName in LSwitchData.LongNames do
-        if (LLongName.Abbreviation <> '') and (not StartsText(LLongName.Abbreviation, LLongName.LongForm)) then
+      begin
+        if (LSwitchData.Name <> '') and (Length(LSwitchData.Name) >= Length(LLongName.LongForm)) then
+          Exit(SetError(ekShortNameTooLong, edShortNameTooLong, SShortNameMustBeShorterThanLongName + ': '
+            + LLongName.LongForm.QuotedString('"'), 0, LSwitchData.Name))
+        else if (LLongName.Abbreviation <> '') and (not StartsText(LLongName.Abbreviation, LLongName.LongForm)) then
           Exit(SetError(ekLongFormsDontMatch, edLongFormsDontMatch, SLongFormsDontMatch, 0, LLongName.LongForm));
+      end;
 end;
 
 ///  <summary>
@@ -1244,6 +1275,30 @@ begin
 
       Exit(True);
     end;
+  end;
+end;
+
+function TCommandLineParser.FindShortNameSwitch(const ASwitchBody: string; var AParam: string; var AData: TSwitchData): Boolean;
+var
+  LSwitchData: TSwitchData;
+begin
+  // DOS-style attached value, e.g. '-nValue': the body starts with a short name
+  // and everything after it is the value. When several short names match, the
+  // longest one wins, so '-Srvhost' with short names 'S' and 'Srv' picks 'Srv'.
+  AData := nil;
+
+  for LSwitchData in FSwitchList do
+    if (LSwitchData.Name <> '') and (not (soPositional in LSwitchData.Options))
+      and ASwitchBody.StartsWith(LSwitchData.Name, True) then
+      if (not Assigned(AData)) or (Length(LSwitchData.Name) > Length(AData.Name)) then
+        AData := LSwitchData;
+
+  Result := Assigned(AData);
+
+  if Result then
+  begin
+    AParam := ASwitchBody;
+    Delete(AParam, 1, Length(AData.Name));
   end;
 end;
 
@@ -1402,16 +1457,10 @@ begin
     if not Assigned(AData) then //try extendable switches
       FindExtendableSwitch(LName, AParam, AData);
 
-    if not Assigned(AData) then //try short name
+    if not Assigned(AData) then //try short name with the value attached, e.g. '-nValue'
     begin
-      if FSwitchDict.TryGetValue(LSwitchBody[1], AData) then
-      begin
-        AParam := LSwitchBody;
-        Delete(AParam, 1, 1);
-
-        if (AParam <> '') and (AData.SwitchType = stBoolean) then // misdetection, Boolean switch cannot accept data
-          AData := nil;
-      end;
+      if FindShortNameSwitch(LSwitchBody, AParam, AData) and (AParam <> '') and (AData.SwitchType = stBoolean) then
+        AData := nil; // misdetection, Boolean switch cannot accept data
     end;
   end;
 end;
@@ -1899,6 +1948,38 @@ begin
   end;
 end;
 
+function CLPMarkShortName(const ALongForm, AShortName: string): string;
+var
+  LExactPos: Integer;
+  LPos: Integer;
+begin
+  Result := ALongForm;
+
+  if AShortName = '' then
+    Exit;
+
+  // First occurrence of any casing. At the start of the long name it wins
+  // outright: the prefix is the most natural short form, so 'r' marks
+  // '[R]estore' and not 'Resto[r]e'.
+  LPos := Pos(LowerCase(AShortName), LowerCase(ALongForm));
+
+  // Elsewhere an occurrence with the same casing is preferred, so 'Se' marks
+  // 'Use[Se]rvice' and not 'U[se]Service'.
+  if LPos > 1 then
+  begin
+    LExactPos := Pos(AShortName, ALongForm);
+
+    if LExactPos > 0 then
+      LPos := LExactPos;
+  end;
+
+  if LPos > 0 then
+  begin
+    Insert(']', Result, LPos + Length(AShortName));
+    Insert('[', Result, LPos);
+  end;
+end;
+
 { TUsageFormatter }
 
 function TUsageFormatter.ParamSuffix(const AData: TSwitchData): string;
@@ -1919,18 +2000,32 @@ end;
 function TUsageFormatter.NamesColumn(const AData: TSwitchData): string;
 var
   LLongName: TCLPLongName;
+  LName: string;
+  LShortNameMarked: Boolean;
 begin
   Result := '';
+  LShortNameMarked := False;
 
-  if AData.Name <> '' then
-    Result := SwitchLabel(USAGE_SHORT_PREFIX, AData.Name, AData);
-
+  // The long name is preferred: a short name that occurs inside a long name is
+  // marked there ('-[R]estore', '-Use[Se]rvice') and not listed separately.
   for LLongName in AData.LongNames do
   begin
+    LName := CLPMarkShortName(LLongName.LongForm, AData.Name);
+    LShortNameMarked := LShortNameMarked or (LName <> LLongName.LongForm);
+
     if Result <> '' then
       Result := Result + ', ';
 
-    Result := Result + SwitchLabel(USAGE_SHORT_PREFIX, LLongName.LongForm, AData);
+    Result := Result + SwitchLabel(USAGE_SHORT_PREFIX, LName, AData);
+  end;
+
+  // A short name that is not part of any long name goes first, on its own.
+  if (AData.Name <> '') and (not LShortNameMarked) then
+  begin
+    if Result <> '' then
+      Result := ', ' + Result;
+
+    Result := SwitchLabel(USAGE_SHORT_PREFIX, AData.Name, AData) + Result;
   end;
 
   if Result = '' then // no explicit name at all
